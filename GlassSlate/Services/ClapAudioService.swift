@@ -5,7 +5,6 @@ import Observation
 @MainActor @Observable final class ClapAudioService {
     private(set) var customName: String?
     private(set) var notice: String?
-    private var player: AVAudioPlayer?
     private var voices: [AVAudioPlayer] = []
     private var nextVoice = 0
     var isPlaying: Bool { voices.contains { $0.isPlaying } }
@@ -36,18 +35,34 @@ import Observation
                     self.sessionActive = false
                     self.voices.forEach { $0.stop() }
                 } else {
-                    do { try self.prepareWithFallback(); try self.activate() }
+                    // Rebuild stopped voices, but activate on the next user action. Siri may
+                    // still own the route when this notification arrives; no automatic replay.
+                    self.sessionActive = false
+                    do { try self.prepareWithFallback() }
                     catch { self.notice = String(localized: "Audio is unavailable. Please try again.") }
                 }
             }
         })
-        observers.append(center.addObserver(forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main) { [weak self] _ in
+        observers.append(center.addObserver(forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main) { [weak self] notification in
+            let reason = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt
+            // Our own setCategory call must not stop the clap that has just started.
+            guard reason != AVAudioSession.RouteChangeReason.categoryChange.rawValue else { return }
             Task { @MainActor [weak self] in
                 self?.voices.forEach { $0.stop() }
+                self?.sessionActive = false
                 do { try self?.prepareWithFallback() }
                 catch { self?.notice = String(localized: "Audio is unavailable. Please try again.") }
             }
         })
+        for name in [AVAudioSession.mediaServicesWereLostNotification, AVAudioSession.mediaServicesWereResetNotification] {
+            observers.append(center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    self?.sessionActive = false
+                    self?.voices.forEach { $0.stop() }
+                    self?.voices = []
+                }
+            })
+        }
     }
 
     private func decodedPlayer(url: URL) throws -> AVAudioPlayer {
@@ -63,7 +78,7 @@ import Observation
         if let first { loaded.append(first) }
         while loaded.count < 4 { loaded.append(try decodedPlayer(url: url)) }
         voices.forEach { $0.stop() }
-        voices = loaded; player = loaded.first; nextVoice = 0
+        voices = loaded; nextVoice = 0
     }
 
     private func prepareWithFallback() throws {
@@ -90,25 +105,31 @@ import Observation
     }
 
     /// Zero intentional scheduling delay. A predecoded voice is available while the last clap rings out.
-    func playImmediate() throws {
-        guard sessionActive, !voices.isEmpty else { throw AudioError.playback }
-        let voice = voices[nextVoice % voices.count]
-        nextVoice = (nextVoice + 1) % voices.count
-        voice.pause(); voice.currentTime = 0
-        guard voice.play() else { throw AudioError.playback }
+    func playImmediate(forceActivation: Bool = false) throws {
+        try PlaybackRecovery.perform(activate: {
+            if voices.isEmpty { try prepareWithFallback() }
+            try activate(force: forceActivation)
+        }, start: {
+            guard !voices.isEmpty else { throw AudioError.playback }
+            let voice = voices[nextVoice % voices.count]
+            nextVoice = (nextVoice + 1) % voices.count
+            voice.pause(); voice.currentTime = 0
+            guard voice.play() else { throw AudioError.playback }
+        }, recover: {
+            sessionActive = false
+            try prepareWithFallback()
+        })
     }
 
     func warmUp() {
-        do { try activate(); player?.prepareToPlay() }
+        do {
+            if voices.isEmpty { try prepareWithFallback() }
+            try activate(); voices.first?.prepareToPlay()
+        }
         catch { notice = String(localized: "Audio is unavailable. Please try again.") }
     }
 
-    func play(activateSession: Bool = true) throws {
-        if activateSession { try activate() }
-        if player == nil { try prepareWithFallback() }
-        player?.currentTime = 0
-        guard player?.play() == true else { throw AudioError.playback }
-    }
+    func play() throws { try playImmediate() }
 
     func suspend() {
         voices.forEach { $0.stop() }
@@ -161,12 +182,13 @@ import Observation
 }
 
 enum AudioError: LocalizedError {
-    case missingDefault, invalidFile, playback
+    case missingDefault, invalidFile, playback, savedWithoutSound
     var errorDescription: String? {
         switch self {
         case .missingDefault: String(localized: "The bundled clap sound could not be found.")
         case .invalidFile: String(localized: "Choose a playable audio file up to 30 seconds and 50 MB.")
         case .playback: String(localized: "The sound could not play. Check your audio output.")
+        case .savedWithoutSound: String(localized: "The sound could not play. The slate was saved.")
         }
     }
 }

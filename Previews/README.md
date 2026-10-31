@@ -1,11 +1,17 @@
-# 原生 SwiftUI 布局预览
+# Native SwiftUI layout checks
 
-这些图像由 macOS NSHostingView 离屏渲染实际共享的 Stage/Settings SwiftUI 视图生成，用于检查版面。不是 iPhone 截图，也不是 Xcode Canvas 验收记录。
+These images are generated on macOS with NSHostingView and the actual shared SwiftUI views. They are layout evidence, not iPhone or iPad screenshots, Xcode Canvas acceptance records, or touch tests. Liquid Glass compositing cannot be fully assessed with this offscreen method.
 
-- Classic-Landscape-*：按 iPhone 12 Pro 的 844×390 画布及安全区检查横屏。
-- Classic-Portrait-*：390×844 画布及安全区。
-- Classic-Settings-Light：1700 pt 高的设置分组布局检查；macOS 控件外观与 iOS 不同，音量控件使用布局代理。
-- Classic-New-Project-*：实际 NameEditorPopover 内容，检查取消/保存按钮的等宽等高与形状。
-- Classic-History-Actions-*：实际经典历史操作面板内容。以上两类图用传统 material 背景近似弹窗宿主，不包含系统气泡箭头，不作为 iPhone Popover 呈现或长按/拖放测试证据。
+## Version 1.0.1
 
-Liquid Glass 的系统合成层不能被此离屏方式完整捕获，其失败图片没有保留在交付预览中。原生玻璃效果与实际触控/动画必须在用户签名安装后核验。工程提供 Stage 的 #Preview 供 Xcode 查看。
+Run `python3 Scripts/render_layouts.py` from the project root. It uses the installed macOS SDK and does not download or launch an iOS simulator. Temporary compilation output stays under `build/LayoutPreviews/`.
+
+The `1.0.1/` directory contains iPhone portrait and landscape layouts, a 744 pt iPad portrait layout, dark iPad landscape, a 600 pt narrow window, and a large-type environment. The sidebar uses the actual DrawerView with sample projects and records. Native macOS typography, List behavior, and controls can differ from iOS.
+
+The three Clap images capture the actual ClapperView before a programmatic trigger, approximately 45 ms after it, and after reopening. The triggered image shows a closed arm. The reopened image matches the initial rest image. This checks the shared keyframe animation, not real tap or long-press delivery on iOS.
+
+## Archived 1.0.0 previews
+
+The top-level Classic-* files are retained from 1.0.0. The Settings image uses a volume-control layout proxy; new-project images approximate the popover background without the iOS arrow. Classic-History-Actions-* documents the old custom classic menu that was removed in 1.0.1 and is not part of the current UI.
+
+Actual glass appearance, native menu presentation, touch gestures, audio, and platform-specific text sizes need signed-device checks. See [QA](../docs/QA.md).

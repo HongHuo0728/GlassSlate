@@ -1,0 +1,14 @@
+{
+  "version": "1.0.1",
+  "build": "5",
+  "release_build": "PASS",
+  "ipa_validation": "PASS",
+  "change": "normal Lock Screen backing opacity 0.60 to 0.15; native regular glass retained",
+  "accessibility": "increased contrast 0.85; reduced transparency/luminance solid; unchanged",
+  "user_feedback_baseline": "User confirmed native glass is visible on Build 4 but too dark",
+  "build5_visual_validation": "pending user comparison on device",
+  "app_and_shared_swift_sources": "byte-identical to Build 4",
+  "core_test_baseline": "28 tests passed on Build 2; not rerun for backing-opacity change",
+  "additional_runtime_downloads": false,
+  "github_published": false
+}

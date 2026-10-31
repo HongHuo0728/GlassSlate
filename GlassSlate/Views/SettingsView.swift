@@ -14,7 +14,7 @@ struct SettingsView: View {
     @State private var isRestartNotice = false
     private var version: String {
         let info = Bundle.main.infoDictionary ?? [:]
-        return "\(info["CFBundleShortVersionString"] as? String ?? "1.0.0") (\(info["CFBundleVersion"] as? String ?? "1"))"
+        return "\(info["CFBundleShortVersionString"] as? String ?? "—") (\(info["CFBundleVersion"] as? String ?? "—"))"
     }
     var body: some View {
         Group {
@@ -54,7 +54,7 @@ struct SettingsView: View {
                    isPresented: Binding(get: { message != nil }, set: { if !$0 { message = nil } })) {
                 Button("OK", role: .cancel) { message = nil }
             } message: { Text(verbatim: message ?? "") }
-            .onChange(of: audio.notice) { _, notice in
+            .onChange(of: audio.notice, initial: true) { _, notice in
                 if let notice { isRestartNotice = false; message = notice; audio.clearNotice() }
             }
     }

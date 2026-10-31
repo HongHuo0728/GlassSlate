@@ -1,0 +1,23 @@
+{
+  "artifact": "GlassSlate-1.0.1-build5-unsigned.ipa",
+  "version": "1.0.1",
+  "build": "5",
+  "configuration": "Release",
+  "architecture": "arm64",
+  "minimum_ios": "26.0",
+  "bundle_identifier": "com.glassslate.app.dev",
+  "signature": "unsigned; sign before installing",
+  "size_bytes": 3141571,
+  "zip_integrity": "PASS",
+  "payload_structure": "PASS",
+  "resources": "native icon, bundled audio, en/zh-Hans localizations, privacy manifest, Live Activity extension present",
+  "live_activity_extension": "com.glassslate.app.dev.LiveActivity",
+  "extension_version": "1.0.1 (5)",
+  "device_families": [
+    "iPhone",
+    "iPad"
+  ],
+  "intent_metadata": "App and extension both register background Live Activity + audio playback intent",
+  "signing_note": "Main app and embedded appex must both be signed; do not strip the widget extension.",
+  "sha256": "c4d283738421396b268a09e821e097237b653b8999f49eeb5d86c343aa810b11"
+}

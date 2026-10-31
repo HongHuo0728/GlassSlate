@@ -1,0 +1,24 @@
+{
+  "version": "1.0.1",
+  "build": "3",
+  "release_build": "PASS",
+  "ipa_validation": "PASS",
+  "app_swift_changes_since_build2": [
+    "GlassSlate/Views/GlassStyle.swift",
+    "GlassSlate/Views/MainSlateView.swift"
+  ],
+  "material": "regular native Liquid Glass; system-surface backing 0.10, increased contrast 0.24",
+  "drawer_scrim": {
+    "liquid_glass": 0.32,
+    "classic": 0.24
+  },
+  "core_test_baseline": {
+    "build": "2",
+    "tests": 28,
+    "result": "PASS; not rerun for this appearance-only correction"
+  },
+  "ios_test_bundle_baseline": "Build 2 compiled successfully; not rerun",
+  "device_visual_validation": "pending; no device installation in this run",
+  "additional_runtime_downloads": false,
+  "github_published": false
+}

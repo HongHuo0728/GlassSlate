@@ -6,12 +6,19 @@ from pathlib import Path
 parser=argparse.ArgumentParser()
 parser.add_argument('--app',type=Path,required=True)
 parser.add_argument('--output',type=Path,required=True)
+parser.add_argument('--expected-version',help='Override the expected version from Config/Version.xcconfig')
+parser.add_argument('--expected-build',help='Override the expected build from Config/Version.xcconfig')
 args=parser.parse_args()
 app=args.app.resolve()
 info=plistlib.loads((app/'Info.plist').read_bytes())
 assert info['CFBundleSupportedPlatforms']==['iPhoneOS']
-assert info['CFBundleShortVersionString']=='1.0.0'
-assert info['CFBundleVersion']=='1'
+version_file=Path(__file__).resolve().parents[1]/'Config/Version.xcconfig'
+settings=dict(line.split('=',1) for line in version_file.read_text().splitlines() if '=' in line and not line.lstrip().startswith('//'))
+settings={k.strip():v.strip() for k,v in settings.items()}
+assert info['CFBundleShortVersionString']==(args.expected_version or settings['MARKETING_VERSION'])
+assert info['CFBundleVersion']==(args.expected_build or settings['CURRENT_PROJECT_VERSION'])
+assert info['CFBundleVersion'].isascii() and info['CFBundleVersion'].isdigit() and int(info['CFBundleVersion'])>0
+assert set(info['UIDeviceFamily'])=={1,2}
 assert info['MinimumOSVersion']=='26.0'
 exe=app/info['CFBundleExecutable']
 magic,cpu,_=struct.unpack('<III',exe.read_bytes()[:12])
@@ -25,8 +32,9 @@ assert len(extensions)==1
 assert not list((app/'PlugIns').glob('*.xctest*'))
 extension=extensions[0]
 extension_info=plistlib.loads((extension/'Info.plist').read_bytes())
-assert extension_info['CFBundleVersion']=='1'
-assert extension_info['CFBundleShortVersionString']=='1.0.0'
+assert extension_info['CFBundleVersion']==info['CFBundleVersion']
+assert extension_info['CFBundleShortVersionString']==info['CFBundleShortVersionString']
+assert set(extension_info['UIDeviceFamily'])=={1,2}
 assert extension_info['CFBundleIdentifier'].startswith(info['CFBundleIdentifier']+'.')
 assert extension_info['NSExtension']['NSExtensionPointIdentifier']=='com.apple.widgetkit-extension'
 assert info.get('NSSupportsLiveActivities') is True
@@ -57,7 +65,8 @@ report={'artifact':args.output.name,'version':info['CFBundleShortVersionString']
         'size_bytes':args.output.stat().st_size,'zip_integrity':'PASS','payload_structure':'PASS',
         'resources':'native icon, bundled audio, en/zh-Hans localizations, privacy manifest, Live Activity extension present',
         'live_activity_extension':extension_info['CFBundleIdentifier'],
-        'extension_version':'1.0.0 (1)',
+        'extension_version':f'{extension_info["CFBundleShortVersionString"]} ({extension_info["CFBundleVersion"]})',
+        'device_families':['iPhone','iPad'],
         'intent_metadata':'App and extension both register background Live Activity + audio playback intent',
         'signing_note':'Main app and embedded appex must both be signed; do not strip the widget extension.',
         'sha256':hashlib.sha256(args.output.read_bytes()).hexdigest()}

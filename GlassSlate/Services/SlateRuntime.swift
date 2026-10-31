@@ -25,12 +25,12 @@ import Observation
         try await prepare()
         guard settings.liveActivitiesEnabled else { throw SlateIntentError.disabled }
         guard let repository, let audio else { throw SlateIntentError.openApp }
-        try audio.activate(force: true)
         let (_, write) = try repository.startClap(autoIncrement: settings.autoIncrement, soundName: audio.soundIdentifier)
-        var playbackFailure: Error?
-        do { try audio.playImmediate(); SlateHaptics.clap() } catch { playbackFailure = error }
+        var playbackFailed = false
+        do { try audio.playImmediate(forceActivation: true); SlateHaptics.clap() }
+        catch { playbackFailed = true }
         _ = try await write.value
         await liveActivity.sync(values: repository.draft, enabled: settings.liveActivitiesEnabled, allowStart: false)
-        if let playbackFailure { throw playbackFailure }
+        if playbackFailed { throw AudioError.savedWithoutSound }
     }
 }

@@ -1,0 +1,16 @@
+{
+  "result": "PASS",
+  "localization_entries": 131,
+  "locales": [
+    "en",
+    "zh-Hans"
+  ],
+  "compiler_extracted_keys": 117,
+  "missing_translations": [],
+  "default_audio": {
+    "duration_seconds": 0.24,
+    "format": "48000 Hz mono PCM16"
+  },
+  "native_icon_layers": 4,
+  "icon_source": "GlassSlate/GlassSlate.icon"
+}

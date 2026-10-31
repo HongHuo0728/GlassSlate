@@ -630,36 +630,36 @@
         }
       }
     },
-    "Follows your iPhone language. To choose English or Simplified Chinese for GlassSlate, open the native App settings.": {
+    "Follows your device language. To choose English or Simplified Chinese for GlassSlate, open the native App settings.": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Follows your iPhone language. To choose English or Simplified Chinese for GlassSlate, open the native App settings."
+            "value": "Follows your device language. To choose English or Simplified Chinese for GlassSlate, open the native App settings."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "默认跟随 iPhone 语言。要为 GlassSlate 选择英文或简体中文，请打开系统中的 App 设置。"
+            "value": "默认跟随设备语言。要为 GlassSlate 选择英文或简体中文，请打开系统中的 App 设置。"
           }
         }
       }
     },
-    "WAV and M4A recommended. Up to 30 seconds and 50 MB. Imported audio is copied onto this iPhone.": {
+    "WAV and M4A recommended. Up to 30 seconds and 50 MB. Imported audio is copied onto this device.": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "WAV and M4A recommended. Up to 30 seconds and 50 MB. Imported audio is copied onto this iPhone."
+            "value": "WAV and M4A recommended. Up to 30 seconds and 50 MB. Imported audio is copied onto this device."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "推荐 WAV、M4A，最长 30 秒、最大 50 MB。导入音效会复制并保存在此 iPhone 上。"
+            "value": "推荐 WAV、M4A，最长 30 秒、最大 50 MB。导入音效会复制并保存在此设备上。"
           }
         }
       }
@@ -2041,19 +2041,172 @@
         }
       }
     },
-    "GlassSlate · 1.0.0 (1)": {
+    "Project deleted": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "GlassSlate · 1.0.0 (1)"
+            "value": "Project deleted"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "GlassSlate · 1.0.0 (1)"
+            "value": "已删除项目"
+          }
+        }
+      }
+    },
+    "Delete project?": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete project?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除这个项目？"
+          }
+        }
+      }
+    },
+    "Delete project": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete project"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除项目"
+          }
+        }
+      }
+    },
+    "Delete project…": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete project…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除项目…"
+          }
+        }
+      }
+    },
+    "Delete project, keep slates": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete project, keep slates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除项目，保留场记记录"
+          }
+        }
+      }
+    },
+    "Delete project and all slates": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete project and all slates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除项目及全部场记记录"
+          }
+        }
+      }
+    },
+    "Delete “%@”? You can keep its slates in Unfiled slates or delete them with the project.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete “%@”? You can keep its slates in Unfiled slates or delete them with the project."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除“%@”？你可以将其中的场记记录保留到“未归类场记记录”，也可以随项目一起删除。"
+          }
+        }
+      }
+    },
+    "Could not delete this project. Please try again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not delete this project. Please try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法删除这个项目，请重试。"
+          }
+        }
+      }
+    },
+    "Expanded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expanded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已展开"
+          }
+        }
+      }
+    },
+    "Collapsed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapsed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已收起"
           }
         }
       }

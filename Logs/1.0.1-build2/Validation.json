@@ -1,0 +1,43 @@
+{
+  "version": "1.0.1",
+  "build": "2",
+  "xcode": "26.5 (17F42)",
+  "sdk": "iPhoneOS26.5",
+  "minimum_os": "26.0",
+  "device_families": [
+    "iPhone",
+    "iPad"
+  ],
+  "release_build": "PASS",
+  "ios_test_bundle_compilation": "PASS; not executed on iOS",
+  "core_tests": {
+    "result": "PASS",
+    "tests": 28,
+    "suites": 5,
+    "host": "macOS"
+  },
+  "resources": {
+    "result": "PASS",
+    "localization_entries": 131,
+    "locales": [
+      "en",
+      "zh-Hans"
+    ],
+    "compiler_extracted_keys": 117,
+    "missing_translations": [],
+    "default_audio": {
+      "duration_seconds": 0.24,
+      "format": "48000 Hz mono PCM16"
+    },
+    "native_icon_layers": 4,
+    "icon_source": "GlassSlate/GlassSlate.icon"
+  },
+  "preview_type": "macOS offscreen shared SwiftUI classic layouts; not device screenshots",
+  "keyframe_frame_check": "triggered arm closed; reopened PNG identical to rest PNG",
+  "siri_recovery": "implemented; dependency-injected strategy tests pass; physical Siri interruption pending",
+  "device_validation": "not performed in this run",
+  "additional_runtime_downloads": false,
+  "source_baseline_commit": "d1f6c08546732ab84cf804a1d175872e21a84d6a",
+  "local_changes_committed": false,
+  "github_published": false
+}

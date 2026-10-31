@@ -2,16 +2,15 @@ import SwiftUI
 
 struct SlateFieldEditor: View {
     let field: SlateField
-    let save: (SlateValues) async throws -> Void
-    private let original: SlateValues
+    let save: (SlateFieldEdit) async throws -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var text: String
     @State private var date: Date
     @State private var saving = false
     @State private var failure = false
     @FocusState private var focused: Bool
-    init(field: SlateField, values: SlateValues, save: @escaping (SlateValues) async throws -> Void) {
-        self.field = field; self.save = save; original = values
+    init(field: SlateField, values: SlateValues, save: @escaping (SlateFieldEdit) async throws -> Void) {
+        self.field = field; self.save = save
         _text = State(initialValue: values[field]); _date = State(initialValue: values.date)
     }
     var body: some View {
@@ -52,8 +51,7 @@ struct SlateFieldEditor: View {
     }
     private func commit() {
         guard !saving else { return }
-        var updated = original
-        if field == .date { updated.date = date } else { updated[field] = text }
+        let updated: SlateFieldEdit = field == .date ? .date(date) : .text(field, text)
         saving = true
         Task {
             do { try await save(updated); SlateHaptics.success(); dismiss() }

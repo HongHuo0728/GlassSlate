@@ -1,0 +1,20 @@
+{
+  "version": "1.0.1",
+  "build": "4",
+  "release_build": "PASS",
+  "ipa_validation": "PASS",
+  "changed_presentation": "Lock Screen Live Activity",
+  "native_material_request": "glassEffect(.regular) in a background-only subtree",
+  "host_background": "activityBackgroundTint(.clear)",
+  "fallback": "theme-aware translucent backing, opaque with reduced transparency or luminance",
+  "dynamic_island_background": "system-managed; unchanged",
+  "app_and_shared_swift_sources": "byte-identical to Build 3",
+  "core_tests_baseline": "28 tests passed in Build 2; not rerun for extension appearance changes",
+  "device_visual_validation": "NOT PERFORMED; glass refraction and Music-style appearance are not verified",
+  "additional_runtime_downloads": false,
+  "github_published": false,
+  "references": [
+    "https://developer.apple.com/documentation/activitykit/creating-custom-views-for-live-activities",
+    "https://developer.apple.com/design/human-interface-guidelines/live-activities"
+  ]
+}

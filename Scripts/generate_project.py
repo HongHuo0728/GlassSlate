@@ -16,6 +16,8 @@ tests=sorted(p.relative_to(root).as_posix() for p in (root/'GlassSlateTests').gl
 resources=['GlassSlate/Resources/default-clap.wav','GlassSlate/Resources/Localizable.xcstrings','GlassSlate/Resources/PrivacyInfo.xcprivacy','GlassSlate/Assets.xcassets','GlassSlate/GlassSlate.icon']
 widget_resources=['GlassSlate/Resources/Localizable.xcstrings','GlassSlate/Resources/PrivacyInfo.xcprivacy']
 file_ids=[]
+version_file=add('versionconfig','isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Config/Version.xcconfig"; sourceTree = "<group>";')
+file_ids.append(version_file)
 for path in sorted(set(sources+widget_sources+tests+resources+['GlassSlate/Info.plist','GlassSlateLiveActivity/Info.plist'])):
  ext=Path(path).suffix
  filetype={'.swift':'sourcecode.swift','.wav':'audio.wav','.xcstrings':'text.json.xcstrings','.xcassets':'folder.assetcatalog','.icon':'folder.iconcomposer.icon','.plist':'text.plist.xml','.xcprivacy':'text.xml'}[ext]
@@ -35,7 +37,7 @@ test_phases=[phase('testsources','PBXSourcesBuildPhase',tests),phase('testframew
 embedfile=add('embedwidgetfile',f'isa = PBXBuildFile; fileRef = {widget_product}; settings = {{ ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy); }};')
 app_phases.append(add('embedwidget',f'isa = PBXCopyFilesBuildPhase; buildActionMask = 2147483647; dstPath = ""; dstSubfolderSpec = 13; files = {array([embedfile])}; name = "Embed App Extensions"; runOnlyForDeploymentPostprocessing = 0;'))
 common={'SDKROOT':'iphoneos','IPHONEOS_DEPLOYMENT_TARGET':'26.0','SWIFT_VERSION':'6.0','CLANG_ENABLE_MODULES':'YES','CLANG_ENABLE_OBJC_ARC':'YES','SWIFT_STRICT_CONCURRENCY':'complete','ENABLE_USER_SCRIPT_SANDBOXING':'YES','GCC_C_LANGUAGE_STANDARD':'gnu17','CLANG_WARN_DOCUMENTATION_COMMENTS':'YES'}
-identity={'MARKETING_VERSION':'1.0.0','CURRENT_PROJECT_VERSION':'1','TARGETED_DEVICE_FAMILY':'1','SUPPORTED_PLATFORMS':'iphoneos','CODE_SIGN_STYLE':'Automatic','SWIFT_EMIT_LOC_STRINGS':'YES','LOCALIZATION_PREFERS_STRING_CATALOGS':'YES'}
+identity={'TARGETED_DEVICE_FAMILY':'1,2','SUPPORTED_PLATFORMS':'iphoneos','CODE_SIGN_STYLE':'Automatic','SWIFT_EMIT_LOC_STRINGS':'YES','LOCALIZATION_PREFERS_STRING_CATALOGS':'YES'}
 app=dict(identity,PRODUCT_NAME='GlassSlate',PRODUCT_BUNDLE_IDENTIFIER='com.glassslate.app.dev',INFOPLIST_FILE='GlassSlate/Info.plist',GENERATE_INFOPLIST_FILE='NO',SUPPORTS_MACCATALYST='NO',ASSETCATALOG_COMPILER_APPICON_NAME='GlassSlate',LD_RUNPATH_SEARCH_PATHS='$(inherited) @executable_path/Frameworks')
 widget=dict(identity,PRODUCT_NAME='GlassSlateLiveActivity',PRODUCT_BUNDLE_IDENTIFIER='com.glassslate.app.dev.LiveActivity',INFOPLIST_FILE='GlassSlateLiveActivity/Info.plist',GENERATE_INFOPLIST_FILE='NO',APPLICATION_EXTENSION_API_ONLY='YES',SKIP_INSTALL='YES',SWIFT_ACTIVE_COMPILATION_CONDITIONS='WIDGET_EXTENSION',LD_RUNPATH_SEARCH_PATHS='$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks')
 test=dict(identity,PRODUCT_NAME='GlassSlateTests',PRODUCT_BUNDLE_IDENTIFIER='com.glassslate.app.dev.tests',GENERATE_INFOPLIST_FILE='YES',TEST_HOST='$(BUILT_PRODUCTS_DIR)/GlassSlate.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/GlassSlate',BUNDLE_LOADER='$(TEST_HOST)',LD_RUNPATH_SEARCH_PATHS='$(inherited) @executable_path/Frameworks @loader_path/Frameworks')
@@ -46,7 +48,7 @@ def configs(name,settings):
   values.update(DEBUG_INFORMATION_FORMAT='dwarf' if config=='Debug' else 'dwarf-with-dsym',SWIFT_OPTIMIZATION_LEVEL='-Onone' if config=='Debug' else '-O')
   if config=='Debug': values.update(ENABLE_TESTABILITY='YES',SWIFT_ACTIVE_COMPILATION_CONDITIONS='DEBUG '+values.get('SWIFT_ACTIVE_COMPILATION_CONDITIONS','')+' $(inherited)')
   body=' '.join(f'{k} = {q(v)};' for k,v in values.items())
-  ids.append(add(name+config,f'isa = XCBuildConfiguration; buildSettings = {{ {body} }}; name = {config};'))
+  ids.append(add(name+config,f'isa = XCBuildConfiguration; baseConfigurationReference = {version_file}; buildSettings = {{ {body} }}; name = {config};'))
  return add(name+'configs',f'isa = XCConfigurationList; buildConfigurations = {array(ids)}; defaultConfigurationIsVisible = 0; defaultConfigurationName = Release;')
 pc=configs('project',common); ac=configs('app',app); wc=configs('widget',widget); tc=configs('test',test)
 def dependency(name,target_name,target_title):
@@ -67,4 +69,6 @@ ref=f'<BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="{ai
 tref=f'<BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="{tid}" BuildableName="GlassSlateTests.xctest" BlueprintName="GlassSlateTests" ReferencedContainer="container:GlassSlate.xcodeproj"/>'
 (scheme/'GlassSlate.xcscheme').write_text(f'''<?xml version="1.0" encoding="UTF-8"?>
 <Scheme LastUpgradeVersion="2650" version="1.3"><BuildAction parallelizeBuildables="YES" buildImplicitDependencies="YES"><BuildActionEntries><BuildActionEntry buildForTesting="YES" buildForRunning="YES" buildForProfiling="YES" buildForArchiving="YES" buildForAnalyzing="YES">{ref}</BuildActionEntry></BuildActionEntries></BuildAction><TestAction buildConfiguration="Debug" selectedDebuggerIdentifier="Xcode.DebuggerFoundation.Debugger.LLDB" selectedLauncherIdentifier="Xcode.IDEFoundation.Launcher.LLDB"><Testables><TestableReference skipped="NO">{tref}</TestableReference></Testables></TestAction><LaunchAction buildConfiguration="Debug" selectedDebuggerIdentifier="Xcode.DebuggerFoundation.Debugger.LLDB" selectedLauncherIdentifier="Xcode.IDEFoundation.Launcher.LLDB" launchStyle="0" useCustomWorkingDirectory="NO" ignoresPersistentStateOnLaunch="NO" debugDocumentVersioning="YES" debugServiceExtension="internal" allowLocationSimulation="NO"><BuildableProductRunnable runnableDebuggingMode="0">{ref}</BuildableProductRunnable></LaunchAction><ProfileAction buildConfiguration="Release" shouldUseLaunchSchemeArgsEnv="YES" savedToolIdentifier="" useCustomWorkingDirectory="NO" debugDocumentVersioning="YES"><BuildableProductRunnable runnableDebuggingMode="0">{ref}</BuildableProductRunnable></ProfileAction><AnalyzeAction buildConfiguration="Debug"/><ArchiveAction buildConfiguration="Release" revealArchiveInOrganizer="YES"/></Scheme>''')
-print(f'Generated app ({len(sources)} sources), Live Activity ({len(widget_sources)} sources), and {len(tests)} test files; version 1.0.0 (1)')
+version_settings=dict(line.split('=',1) for line in (root/'Config/Version.xcconfig').read_text().splitlines() if '=' in line and not line.lstrip().startswith('//'))
+version_settings={k.strip():v.strip() for k,v in version_settings.items()}
+print(f'Generated app ({len(sources)} sources), Live Activity ({len(widget_sources)} sources), and {len(tests)} test files; version {version_settings["MARKETING_VERSION"]} ({version_settings["CURRENT_PROJECT_VERSION"]})')

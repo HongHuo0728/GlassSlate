@@ -1,0 +1,92 @@
+[0/1] Planning build
+Building for debugging...
+[0/5] Write sources
+[2/5] Write swift-version--58304C5D6DBC2206.txt
+[4/7] Compiling SlateCore PlaybackRecovery.swift
+[5/7] Emitting module SlateCore
+[6/13] Emitting module SlateCoreTests
+[7/13] Compiling SlateCoreTests InteractionPolicyTests.swift
+[8/13] Compiling SlateCoreTests ProjectAndRapidClapTests.swift
+[9/13] Compiling SlateCoreTests PlaybackRecoveryTests.swift
+[10/13] Compiling SlateCoreTests SlateRepositoryTests.swift
+[11/13] Compiling SlateCoreTests Version101Tests.swift
+[11/13] Write Objects.LinkFileList
+[12/13] Linking GlassSlateCorePackageTests
+Build complete! (5.33s)
+Test Suite 'All tests' started at 2026-10-31 21:14:47.618.
+Test Suite 'All tests' passed at 2026-10-31 21:14:47.619.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: x86_64-apple-macos14.0
+◇ Suite ProjectAndRapidClapTests started.
+◇ Suite PlaybackRecoveryTests started.
+◇ Suite InteractionPolicyTests started.
+◇ Suite SlateRepositoryTests started.
+◇ Test deleteUndoRestoresNameAndFolder() started.
+◇ Suite Version101Tests started.
+◇ Test rapidTapsReserveUniqueTakesAndPersistEverySnapshot() started.
+◇ Test drawerRejectsVerticalScrollAndRightwardDeletionRecovery() started.
+◇ Test closedDrawerAndShadowClearLandscapeSafeAreas() started.
+◇ Test persistentFailureIsReportedAfterOneRecoveryAttempt() started.
+◇ Test invalidatedVoiceRebuildsOnceAndRetriesTheSameClap() started.
+◇ Test landscapeAllocatesClapperAndAllThreeDataRows() started.
+◇ Test drawerNavigationOnlyStartsAtPhysicalScreenEdges() started.
+◇ Test takePolicyPreservesIdentifiers() started.
+◇ Test snapshotBeforeIncrementAndRestoreIsIndependent() started.
+◇ Test projectGroupingAndRenameSurviveReopeningWithoutChangingSlateFields() started.
+◇ Test projectDeletionAndUndoPersistAtomically(_:) started.
+◇ Test nextClapReactivatesAnInterruptedSessionWithoutRebuildingHealthyVoices() started.
+◇ Test invalidProjectDoesNotMoveOrRenameRecord() started.
+◇ Test disabledIncrementAndEmptyValues() started.
+◇ Test projectDeleteAndUndoRollBackAfterStorageFailure(_:) started.
+◇ Test openingLegacyOrphanedRecordRepairsMembershipWithoutLosingData() started.
+✔ Test drawerRejectsVerticalScrollAndRightwardDeletionRecovery() passed after 0.001 seconds.
+◇ Test failedRapidClapBatchResetsReservationAndAllowsRetry() started.
+◇ Test glassPreferenceOnlyAppliesOnNextLaunch() started.
+◇ Test liveActivityPayloadLimitsUnicodeAndEscapedControlText() started.
+◇ Test transientActivationFailureRecoversBeforeStartingPlayback() started.
+◇ Test case passing 1 argument mode → .keepSlates to projectDeletionAndUndoPersistAtomically(_:) started.
+◇ Test case passing 1 argument mode → .deleteSlates to projectDeletionAndUndoPersistAtomically(_:) started.
+◇ Test case passing 1 argument mode → .keepSlates to projectDeleteAndUndoRollBackAfterStorageFailure(_:) started.
+◇ Test undoKeptProjectPreservesLaterMovesNamesAndDeletions() started.
+◇ Test fieldSaveMergesWithClapsAndOtherFields() started.
+✔ Test drawerNavigationOnlyStartsAtPhysicalScreenEdges() passed after 0.001 seconds.
+◇ Test slowEdgeDragsUseCurrentPortraitAndLandscapeBounds() started.
+✔ Test closedDrawerAndShadowClearLandscapeSafeAreas() passed after 0.001 seconds.
+◇ Test corruptDraftFailsWithoutResettingStore() started.
+✔ Test takePolicyPreservesIdentifiers() passed after 0.001 seconds.
+✔ Test nextClapReactivatesAnInterruptedSessionWithoutRebuildingHealthyVoices() passed after 0.001 seconds.
+✔ Test invalidatedVoiceRebuildsOnceAndRetriesTheSameClap() passed after 0.001 seconds.
+◇ Test diskPersistenceDeletionUndoAndSort() started.
+◇ Test undoDeadlineAndLayoutBreakpoints() started.
+◇ Test case passing 1 argument mode → .deleteSlates to projectDeleteAndUndoRollBackAfterStorageFailure(_:) started.
+✔ Test landscapeAllocatesClapperAndAllThreeDataRows() passed after 0.002 seconds.
+◇ Test deletedSlateReturnsToUnfiledWhenItsProjectIsGone() started.
+✔ Test transientActivationFailureRecoversBeforeStartingPlayback() passed after 0.001 seconds.
+✔ Test slowEdgeDragsUseCurrentPortraitAndLandscapeBounds() passed after 0.001 seconds.
+✔ Test undoDeadlineAndLayoutBreakpoints() passed after 0.001 seconds.
+✔ Test liveActivityPayloadLimitsUnicodeAndEscapedControlText() passed after 0.002 seconds.
+✔ Test persistentFailureIsReportedAfterOneRecoveryAttempt() passed after 0.009 seconds.
+✔ Suite PlaybackRecoveryTests passed after 0.009 seconds.
+✔ Test glassPreferenceOnlyAppliesOnNextLaunch() passed after 0.065 seconds.
+✔ Suite InteractionPolicyTests passed after 0.066 seconds.
+✔ Test corruptDraftFailsWithoutResettingStore() passed after 0.459 seconds.
+✔ Test openingLegacyOrphanedRecordRepairsMembershipWithoutLosingData() passed after 0.463 seconds.
+✔ Test invalidProjectDoesNotMoveOrRenameRecord() passed after 0.549 seconds.
+✔ Test snapshotBeforeIncrementAndRestoreIsIndependent() passed after 0.550 seconds.
+✔ Test fieldSaveMergesWithClapsAndOtherFields() passed after 0.572 seconds.
+✔ Test deleteUndoRestoresNameAndFolder() passed after 0.579 seconds.
+✔ Test disabledIncrementAndEmptyValues() passed after 0.639 seconds.
+✔ Test failedRapidClapBatchResetsReservationAndAllowsRetry() passed after 0.646 seconds.
+✔ Test deletedSlateReturnsToUnfiledWhenItsProjectIsGone() passed after 0.646 seconds.
+✔ Test projectGroupingAndRenameSurviveReopeningWithoutChangingSlateFields() passed after 0.840 seconds.
+✔ Test undoKeptProjectPreservesLaterMovesNamesAndDeletions() passed after 0.878 seconds.
+✔ Test projectDeleteAndUndoRollBackAfterStorageFailure(_:) with 2 test cases passed after 0.902 seconds.
+✔ Test projectDeletionAndUndoPersistAtomically(_:) with 2 test cases passed after 2.370 seconds.
+✔ Suite Version101Tests passed after 2.371 seconds.
+✔ Test diskPersistenceDeletionUndoAndSort() passed after 2.673 seconds.
+✔ Suite SlateRepositoryTests passed after 2.674 seconds.
+✔ Test rapidTapsReserveUniqueTakesAndPersistEverySnapshot() passed after 2.890 seconds.
+✔ Suite ProjectAndRapidClapTests passed after 2.891 seconds.
+✔ Test run with 28 tests in 5 suites passed after 2.892 seconds.

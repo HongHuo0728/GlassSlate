@@ -3,23 +3,26 @@ import SwiftUI
 struct DrawerView: View {
     @Bindable var repository: SlateRepository
     let isPresented: Bool
+    var isPersistent = false
     let production: String
-    let deleted: HistorySnapshot?
+    let deleted: HistoryDeletion?
     let restore: (HistorySnapshot) -> Void
     let delete: (HistorySnapshot) -> Void
+    let deleteProject: (UUID, ProjectDeletionMode) -> Void
     let undo: () -> Void
     let settings: () -> Void
     let close: () -> Void
-    @Environment(\.slateVisualStyle) private var style
+    let presentationChanged: (Bool) -> Void
     @Environment(\.accessibilityReduceMotion) private var reduced
     @State private var newProject = false
     @State private var editingRecord: HistorySnapshot?
-    @State private var classicRecord: UUID?
+    @State private var deletingProject: ProjectFolder?
     @State private var targetedProject: UUID?
     @State private var unfiledTargeted = false
     @State private var failure: String?
 
     var body: some View {
+        let grouped = Dictionary(grouping: repository.records, by: \.projectID)
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 10) {
@@ -32,8 +35,10 @@ struct DrawerView: View {
                                 _ = try await repository.createProject(name: $0)
                             }
                         }
-                    Button(action: close) { Image(systemName: "xmark").frame(width: 24, height: 24) }
-                        .buttonStyle(SlateActionStyle(compact: true, iconOnly: true)).accessibilityLabel(Text("Close history"))
+                    if !isPersistent {
+                        Button(action: close) { Image(systemName: "xmark").frame(width: 24, height: 24) }
+                            .buttonStyle(SlateActionStyle(compact: true, iconOnly: true)).accessibilityLabel(Text("Close history"))
+                    }
                 }
                 Text(verbatim: production.isEmpty ? String(localized: "Your film starts here") : production)
                     .font(.footnote).foregroundStyle(.secondary).lineLimit(2)
@@ -42,23 +47,20 @@ struct DrawerView: View {
                 if !repository.projects.isEmpty {
                     Section("Projects") {
                         ForEach(repository.projects) { project in
-                            DisclosureGroup(isExpanded: Binding(get: { project.isExpanded }, set: { expanded in
-                                perform { try await repository.setExpanded(id: project.id, expanded: expanded) }
-                            })) {
-                                let children = repository.records.filter { $0.projectID == project.id }
+                            let children = grouped[project.id] ?? []
+                            projectRow(project, count: children.count)
+                            if project.isExpanded {
                                 if children.isEmpty {
                                     Text("Drop slates here").font(.footnote).foregroundStyle(.secondary)
                                         .listRowBackground(Color.clear).listRowSeparator(.hidden)
                                 }
                                 ForEach(children) { record in slateRow(record) }
-                            } label: { projectLabel(project) }
-                            .listRowBackground(Color.clear).listRowSeparator(.hidden)
-                            .listRowInsets(EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12))
+                            }
                         }
                     }
                 }
                 Section {
-                    let unfiled = repository.records.filter { $0.projectID == nil }
+                    let unfiled = grouped[nil] ?? []
                     if repository.records.isEmpty {
                         ContentUnavailableView("No slates yet", systemImage: "rectangle.stack",
                                                description: Text("Tap the striped clapper. Each take will appear here."))
@@ -84,7 +86,8 @@ struct DrawerView: View {
                 Spacer(minLength: 0)
                 if deleted != nil {
                     HStack(spacing: 12) {
-                        Text("Slate deleted").font(.caption).lineLimit(1).minimumScaleFactor(0.8)
+                        Text(deleted?.isProject == true ? "Project deleted" : "Slate deleted")
+                            .font(.caption).lineLimit(1).minimumScaleFactor(0.8)
                         Button("Undo", action: undo).font(.subheadline.weight(.semibold)).foregroundStyle(.blue).buttonStyle(.plain)
                             .frame(minHeight: 44).disabled(repository.isSaving)
                     }.padding(.horizontal, 16).glassPanel(radius: 1000)
@@ -95,19 +98,52 @@ struct DrawerView: View {
         // 22 pt circular/capsule radius + 16 pt edge inset = 38 pt outer radius.
         .glassPanel(radius: 38)
         .onChange(of: isPresented) { _, shown in
-            if !shown { newProject = false; editingRecord = nil; classicRecord = nil }
+            if !shown { newProject = false; editingRecord = nil; deletingProject = nil }
         }
-        .accessibilityAddTraits(.isModal).accessibilityAction(.escape, close)
+        .onChange(of: newProject || editingRecord != nil || deletingProject != nil) { _, value in presentationChanged(value) }
+        .onDisappear { presentationChanged(false) }
+        .accessibilityAddTraits(isPersistent ? [] : .isModal)
+        .accessibilityAction(.escape) { if !isPersistent { close() } }
+        .confirmationDialog("Delete project?", isPresented: Binding(get: { deletingProject != nil }, set: { if !$0 { deletingProject = nil } }),
+                            titleVisibility: .visible, presenting: deletingProject) { project in
+            if repository.records.contains(where: { $0.projectID == project.id }) {
+                Button("Delete project, keep slates", role: .destructive) { deleteProject(project.id, .keepSlates) }
+                Button("Delete project and all slates", role: .destructive) { deleteProject(project.id, .deleteSlates) }
+            } else {
+                Button("Delete project", role: .destructive) { deleteProject(project.id, .keepSlates) }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { project in
+            Text("Delete “\(project.name)”? You can keep its slates in Unfiled slates or delete them with the project.")
+        }
         .alert("Unable to complete action", isPresented: Binding(get: { failure != nil }, set: { if !$0 { failure = nil } })) {
             Button("OK", role: .cancel) { failure = nil }
         } message: { Text(verbatim: failure ?? "") }
     }
-    private func projectLabel(_ project: ProjectFolder) -> some View {
+    private func projectRow(_ project: ProjectFolder, count: Int) -> some View {
+        Button { perform { try await repository.setExpanded(id: project.id, expanded: !project.isExpanded) } } label: {
+            projectLabel(project, count: count)
+        }
+        .buttonStyle(.plain).disabled(repository.isSaving)
+        .contextMenu {
+            Button("Delete project…", systemImage: "trash", role: .destructive) { deletingProject = project }
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            Button(role: .destructive) { deletingProject = project } label: { Label("Delete", systemImage: "trash") }.tint(.red)
+        }
+        .listRowBackground(Color.clear).listRowSeparator(.hidden)
+        .listRowInsets(EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12))
+        .accessibilityValue(Text(project.isExpanded ? "Expanded" : "Collapsed"))
+        .accessibilityAction(named: Text("Delete project")) { deletingProject = project }
+    }
+    private func projectLabel(_ project: ProjectFolder, count: Int) -> some View {
         HStack(spacing: 10) {
+            Image(systemName: "chevron.right").font(.caption.weight(.semibold))
+                .rotationEffect(.degrees(project.isExpanded ? 90 : 0)).foregroundStyle(.secondary)
             Image(systemName: project.isExpanded ? "folder.fill" : "folder").foregroundStyle(.blue)
             Text(verbatim: project.name).font(.headline).lineLimit(2)
             Spacer(minLength: 4)
-            Text(repository.records.filter { $0.projectID == project.id }.count, format: .number)
+            Text(count, format: .number)
                 .font(.caption).monospacedDigit().foregroundStyle(.secondary)
         }.padding(.vertical, 10).contentShape(Rectangle())
             .background(targetedProject == project.id ? Color.blue.opacity(0.15) : .clear, in: RoundedRectangle(cornerRadius: 16))
@@ -132,48 +168,24 @@ struct DrawerView: View {
             .accessibilityAction { restore(record) }
             .accessibilityAction(named: Text("Rename")) { editingRecord = record }
             .accessibilityAction(named: Text("Restore slate")) { restore(record) }
+            .accessibilityAction(named: Text("Delete")) { delete(record) }
     }
-    @ViewBuilder private func interactiveCard(_ record: HistorySnapshot) -> some View {
-        if style == .liquidGlass {
-            HistoryCard(record: record)
-                .onTapGesture { if !repository.isSaving { restore(record) } }
-                .contextMenu {
-                    Button("Rename", systemImage: "pencil") { editingRecord = record; SlateHaptics.selection() }
-                    Menu {
-                        Button("Unfiled slates") { perform { try await repository.move(id: record.id, projectID: nil) } }
-                        ForEach(repository.projects) { project in
-                            Button(project.name) { perform { try await repository.move(id: record.id, projectID: project.id) } }
-                        }
-                    } label: { Label("Move to project", systemImage: "folder") }
-                    Menu {
-                        Button("Delete slate", role: .destructive) { delete(record) }
-                        Button("Cancel", role: .cancel) { SlateHaptics.selection() }
-                    } label: { Label("Delete…", systemImage: "trash") }
-                }
-        } else {
-            HistoryCard(record: record)
-                // Present on release so holding and moving can still begin a native drag.
-                .simultaneousGesture(LongPressGesture(minimumDuration: 0.45, maximumDistance: 10)
-                    .sequenced(before: DragGesture(minimumDistance: 0))
-                    .exclusively(before: TapGesture()).onEnded { gesture in
-                    switch gesture {
-                    case .first(.second(true, let drag)):
-                        guard !repository.isSaving else { return }
-                        let movement = drag?.translation ?? .zero
-                        guard abs(movement.width) <= 10, abs(movement.height) <= 10 else { return }
-                        classicRecord = record.id; SlateHaptics.selection()
-                    case .second:
-                        if !repository.isSaving { restore(record) }
-                    default: break
+    private func interactiveCard(_ record: HistorySnapshot) -> some View {
+        HistoryCard(record: record)
+            .onTapGesture { if !repository.isSaving { restore(record) } }
+            .contextMenu {
+                Button("Rename", systemImage: "pencil") { editingRecord = record; SlateHaptics.selection() }
+                Menu {
+                    Button("Unfiled slates") { perform { try await repository.move(id: record.id, projectID: nil) } }
+                    ForEach(repository.projects) { project in
+                        Button(project.name) { perform { try await repository.move(id: record.id, projectID: project.id) } }
                     }
-                })
-                .popover(isPresented: Binding(get: { classicRecord == record.id }, set: { if !$0 { classicRecord = nil } }), arrowEdge: .bottom) {
-                    ClassicHistoryPopover(record: record, projects: repository.projects,
-                        rename: { try await repository.rename(id: record.id, name: $0) },
-                        move: { try await repository.move(id: record.id, projectID: $0) },
-                        delete: { delete(record) })
-                }
-        }
+                } label: { Label("Move to project", systemImage: "folder") }
+                Menu {
+                    Button("Delete slate", role: .destructive) { delete(record) }
+                    Button("Cancel", role: .cancel) { SlateHaptics.selection() }
+                } label: { Label("Delete…", systemImage: "trash") }
+            }
     }
     private func drop(_ values: [String], into project: UUID?) -> Bool {
         guard !repository.isSaving, let id = values.first.flatMap(UUID.init(uuidString:)), repository.records.contains(where: { $0.id == id }) else { return false }

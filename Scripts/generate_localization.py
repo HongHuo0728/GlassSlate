@@ -39,8 +39,8 @@ System output volume|系统输出音量
 Open App Settings|打开 App 系统设置
 System follows your iPhone appearance. Home Screen icon appearance is controlled by iOS.|“跟随系统”会跟随 iPhone 外观。主屏幕图标外观由 iOS 控制。
 After saving a snapshot, numeric Takes advance by one. 009 becomes 010; 02B stays 02B.|保存拍板快照后，仅纯数字条次加一。009 变为 010；02B 保持不变。
-Follows your iPhone language. To choose English or Simplified Chinese for GlassSlate, open the native App settings.|默认跟随 iPhone 语言。要为 GlassSlate 选择英文或简体中文，请打开系统中的 App 设置。
-WAV and M4A recommended. Up to 30 seconds and 50 MB. Imported audio is copied onto this iPhone.|推荐 WAV、M4A，最长 30 秒、最大 50 MB。导入音效会复制并保存在此 iPhone 上。
+Follows your device language. To choose English or Simplified Chinese for GlassSlate, open the native App settings.|默认跟随设备语言。要为 GlassSlate 选择英文或简体中文，请打开系统中的 App 设置。
+WAV and M4A recommended. Up to 30 seconds and 50 MB. Imported audio is copied onto this device.|推荐 WAV、M4A，最长 30 秒、最大 50 MB。导入音效会复制并保存在此设备上。
 Use this system control to adjust volume. Check Bluetooth and wired output. Clap playback can sound even in Silent Mode. GlassSlate never changes system volume automatically.|请使用此系统控件调节音量，并检查蓝牙与有线输出。拍板声可在静音模式下播放。GlassSlate 不会自动修改系统音量。
 Your saved data could not be opened. It has not been erased.|无法打开已保存的数据。数据未被删除。
 Enter a value|请输入内容
@@ -122,7 +122,16 @@ Open GlassSlate once before using the clap button.|请先打开一次 GlassSlate
 Live Activities are turned off in GlassSlate.|GlassSlate 中的实时活动已关闭。
 Could not start the clap. Please try again.|无法开始拍板，请重试。
 GlassSlate|GlassSlate
-GlassSlate · 1.0.0 (1)|GlassSlate · 1.0.0 (1)'''
+Project deleted|已删除项目
+Delete project?|删除这个项目？
+Delete project|删除项目
+Delete project…|删除项目…
+Delete project, keep slates|删除项目，保留场记记录
+Delete project and all slates|删除项目及全部场记记录
+Delete “%@”? You can keep its slates in Unfiled slates or delete them with the project.|删除“%@”？你可以将其中的场记记录保留到“未归类场记记录”，也可以随项目一起删除。
+Could not delete this project. Please try again.|无法删除这个项目，请重试。
+Expanded|已展开
+Collapsed|已收起'''
 strings={}
 for line in translations.splitlines():
     en,zh=line.split('|',1)

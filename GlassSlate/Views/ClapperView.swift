@@ -16,8 +16,7 @@ struct DiagonalStripes: Shape {
     }
 }
 struct ClapperView: View {
-    let closure: CGFloat
-    let busy: Bool
+    let clapTrigger: Int
     let availableWidth: CGFloat
     var stickHeight: CGFloat = 36
     var openAngle: Double = 13
@@ -38,11 +37,19 @@ struct ClapperView: View {
         .modifier(StickSurface(glass: glass))
     }
     var body: some View {
-        Button(action: action) {
+        let angle = reduceMotion ? 0 : openAngle
+        return Button(action: action) {
             VStack(spacing: 3) {
                 // Keep the moving arm vector-only. The stationary arm carries native glass;
                 // the compositor need not recalculate refraction during an 80 ms impact.
-                stick(glass: false).rotationEffect(.degrees(reduceMotion ? 0 : -openAngle * (1 - closure)), anchor: .bottomLeading)
+                stick(glass: false)
+                    .keyframeAnimator(initialValue: CGFloat.zero, trigger: clapTrigger) { arm, closure in
+                        arm.rotationEffect(.degrees(-angle * (1 - closure)), anchor: .bottomLeading)
+                    } keyframes: { _ in
+                        LinearKeyframe(CGFloat(1), duration: ClapMotion.closing)
+                        LinearKeyframe(CGFloat(1), duration: ClapMotion.contact)
+                        CubicKeyframe(CGFloat(0), duration: ClapMotion.reopening)
+                    }
                 stick(glass: style == .liquidGlass)
             }
             .overlay(alignment: .leading) {
@@ -62,8 +69,9 @@ struct ClapperView: View {
 }
 private struct StickSurface: ViewModifier {
     let glass: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduced
     @ViewBuilder func body(content: Content) -> some View {
-        if glass { content.glassEffect(.clear, in: RoundedRectangle(cornerRadius: 7)) }
+        if glass && !reduced { content.glassEffect(.clear, in: RoundedRectangle(cornerRadius: 7)) }
         else { content.shadow(color: .black.opacity(0.12), radius: 2, y: 1).shadow(color: .black.opacity(0.08), radius: 7, y: 4) }
     }
 }

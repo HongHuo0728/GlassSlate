@@ -59,7 +59,7 @@ struct SettingsContent<Volume: View>: View {
                         if !liveStatus.isEmpty { Text(verbatim: liveStatus).font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
                     }.staggeredEntrance(3)
                     SettingsGroup("Language", icon: "globe") {
-                        explanation("Follows your iPhone language. To choose English or Simplified Chinese for GlassSlate, open the native App settings.")
+                        explanation("Follows your device language. To choose English or Simplified Chinese for GlassSlate, open the native App settings.")
                         Button(action: openLanguage) { Label("Open App Settings", systemImage: "arrow.up.right").frame(maxWidth: .infinity) }
                             .buttonStyle(SlateActionStyle())
                     }.staggeredEntrance(3)
@@ -74,7 +74,7 @@ struct SettingsContent<Volume: View>: View {
                         } else { HStack(spacing: 10) { soundButtons } }
                         Button(action: restoreSound) { Label("Restore classic sound", systemImage: "arrow.uturn.backward").frame(maxWidth: .infinity) }
                             .buttonStyle(SlateActionStyle())
-                        explanation("WAV and M4A recommended. Up to 30 seconds and 50 MB. Imported audio is copied onto this iPhone.")
+                        explanation("WAV and M4A recommended. Up to 30 seconds and 50 MB. Imported audio is copied onto this device.")
                         Divider().padding(.vertical, 2)
                         Text("System output volume").font(.subheadline.weight(.semibold))
                         volume().frame(height: 38).padding(.horizontal, 4)

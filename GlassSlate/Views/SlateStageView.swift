@@ -6,7 +6,8 @@ struct SlateStageView: View {
     let recordCount: Int
     let locked: Bool
     let busy: Bool
-    let closure: CGFloat
+    let clapTrigger: Int
+    var persistentHistory = false
     let history: () -> Void
     let settings: () -> Void
     let toggleLock: () -> Void
@@ -16,7 +17,8 @@ struct SlateStageView: View {
     var body: some View {
         GeometryReader { geometry in
             let metrics = SlateStageGeometry(width: geometry.size.width, height: geometry.size.height)
-            if metrics.isLandscape { landscape(metrics) }
+            if persistentHistory { tablet(width: geometry.size.width, height: geometry.size.height) }
+            else if metrics.isLandscape { landscape(metrics) }
             else { portrait(width: geometry.size.width) }
         }
     }
@@ -30,7 +32,7 @@ struct SlateStageView: View {
                     .accessibilityLabel(Text("\(recordCount) slates"))
             }.frame(width: metrics.railWidth).staggeredEntrance(0)
             VStack(spacing: 0) {
-                ClapperView(closure: closure, busy: busy, availableWidth: metrics.stageWidth,
+                ClapperView(clapTrigger: clapTrigger, availableWidth: metrics.stageWidth,
                             stickHeight: metrics.stickHeight, openAngle: metrics.openAngle, action: clap)
                     .staggeredEntrance(1)
                 SlateBoardSurface(values: values, locked: locked, busy: busy,
@@ -54,7 +56,7 @@ struct SlateStageView: View {
             ScrollView {
                 VStack(spacing: 16) {
                     VStack(spacing: 0) {
-                        ClapperView(closure: closure, busy: busy, availableWidth: min(680, width - 32), action: clap)
+                        ClapperView(clapTrigger: clapTrigger, availableWidth: min(680, width - 32), action: clap)
                             .staggeredEntrance(1)
                         SlateBoardSurface(values: values, locked: locked, busy: busy, edit: edit).staggeredEntrance(2)
                     }
@@ -78,6 +80,35 @@ struct SlateStageView: View {
             tool(locked ? "lock.fill" : "lock.open", label: locked ? "Unlock fields" : "Lock fields and keep screen awake", action: toggleLock)
             tool("plus", label: "New slate", action: newSlate).disabled(locked || busy)
         }
+    }
+    private func tablet(width: CGFloat, height: CGFloat) -> some View {
+        let boardWidth = min(1000, max(1, width - 32))
+        let stickHeight: CGFloat = 36
+        let angle = min(10.0, max(4.5, Double(height / boardWidth) * 9))
+        let clapperHeight = boardWidth * sin(angle * .pi / 180) + stickHeight * 2 + 13
+        let boardHeight = max(270, min(650, height - clapperHeight - 100))
+        return VStack(spacing: 12) {
+            HStack(spacing: 12) {
+                Text("GlassSlate").font(.title2.bold()).fontDesign(.rounded)
+                Spacer(minLength: 8)
+                tool("slider.horizontal.3", label: "Settings", action: settings)
+                tool(locked ? "lock.fill" : "lock.open", label: locked ? "Unlock fields" : "Lock fields and keep screen awake", action: toggleLock)
+                tool("plus", label: "New slate", action: newSlate).disabled(locked || busy)
+            }.padding(.horizontal, 16)
+            ScrollView {
+                VStack(spacing: 12) {
+                    VStack(spacing: 0) {
+                        ClapperView(clapTrigger: clapTrigger, availableWidth: boardWidth,
+                                    stickHeight: stickHeight, openAngle: angle, action: clap)
+                        SlateBoardSurface(values: values, locked: locked, busy: busy,
+                                          landscapeHeight: boardHeight, edit: edit).frame(height: boardHeight)
+                    }.frame(width: boardWidth)
+                    Label(locked ? "Fields locked · screen stays awake" : "Tap the striped clapper to mark a take",
+                          systemImage: locked ? "lock.fill" : "hand.tap")
+                        .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                }.padding(.horizontal, 16).padding(.bottom, 16).frame(maxWidth: .infinity)
+            }.scrollBounceBehavior(.basedOnSize)
+        }.padding(.top, 8)
     }
     private func tool(_ icon: String, label: LocalizedStringKey, action: @escaping () -> Void) -> some View {
             Button(action: action) { Image(systemName: icon).contentTransition(.symbolEffect(.replace)).frame(width: 24, height: 24) }

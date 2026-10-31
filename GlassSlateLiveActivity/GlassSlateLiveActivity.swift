@@ -23,6 +23,7 @@ struct GlassSlateLiveActivity: Widget {
                 }
                 if let message = context.state.message { Text(verbatim: message).font(.caption).foregroundStyle(.red).lineLimit(2) }
             }.padding(16)
+                .modifier(LockScreenGlassSurface())
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) { Label("GlassSlate", systemImage: "film").font(.headline) }
@@ -57,8 +58,41 @@ struct GlassSlateLiveActivity: Widget {
     }
     private func value(_ label: LocalizedStringKey, _ text: String) -> some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(label).font(.caption2).foregroundStyle(.secondary)
+            Text(label).font(.caption2).foregroundStyle(.primary.opacity(0.9))
             Text(verbatim: text.isEmpty ? "—" : text).font(.title3.weight(.semibold)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
         }.frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// The Lock Screen host otherwise supplies an opaque dark/light activity background.
+/// Request native regular glass without a second opaque host surface. WidgetKit owns
+/// final compositing; the backing remains readable if a host omits the glass effect.
+private struct LockScreenGlassSurface: ViewModifier {
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.accessibilityReduceTransparency) private var reducedTransparency
+    @Environment(\.isLuminanceReduced) private var reducedLuminance
+
+    func body(content: Content) -> some View {
+        let shape = ContainerRelativeShape()
+        let backing: Color = scheme == .dark ? .black : .white
+        return Group {
+            if reducedTransparency || reducedLuminance {
+                content.background(backing, in: shape)
+            } else {
+                content.background {
+                    ZStack {
+                        // Native glass already supplies diffusion and contrast. Keep only
+                        // a light backing so the Lock Screen wallpaper can show through.
+                        shape.fill(backing.opacity(contrast == .increased ? 0.85 : 0.15))
+                        // Keep the content outside the effect's subtree so text and the
+                        // intent button remain present even if a widget host omits glass.
+                        Color.clear.glassEffect(.regular, in: shape)
+                    }
+                }
+            }
+        }
+        .activityBackgroundTint(.clear)
+        .activitySystemActionForegroundColor(.primary)
     }
 }

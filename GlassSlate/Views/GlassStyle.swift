@@ -39,16 +39,13 @@ extension Color {
 struct GlassPanel: ViewModifier {
     @Environment(\.slateVisualStyle) private var style
     @Environment(\.colorScheme) private var scheme
-    @Environment(\.accessibilityReduceTransparency) private var reduced
     var radius: CGFloat = 24
     var interactive = false
     var tint: Color? = nil
     @ViewBuilder func body(content: Content) -> some View {
         let shape = radius >= 1000 ? AnyShape(Capsule(style: .circular)) : AnyShape(RoundedRectangle(cornerRadius: radius))
         if style == .liquidGlass {
-            content
-                .background { if reduced { shape.fill(Color.slateSurface) } }
-                .glassEffect(.regular.tint(tint).interactive(interactive), in: shape)
+            content.modifier(NativeGlassSurface(shape: shape, tint: tint, interactive: interactive))
         } else {
             content
                 .background {
@@ -129,7 +126,7 @@ private struct ActionSurface: ViewModifier {
     let style: SlateVisualStyle
     let pressed: Bool
     @ViewBuilder func body(content: Content) -> some View {
-        if style == .liquidGlass { content.glassEffect(.regular.interactive(), in: shape) }
+        if style == .liquidGlass { content.modifier(NativeGlassSurface(shape: shape, interactive: true)) }
         else {
             content.background {
                 shape.fill(Color.slateSurface)
@@ -137,6 +134,28 @@ private struct ActionSurface: ViewModifier {
                     .shadow(color: .black.opacity(0.05), radius: 7, y: 4)
             }
                 .overlay { if pressed { shape.fill(.primary.opacity(0.06)).allowsHitTesting(false) } }
+        }
+    }
+}
+
+/// Keep glyphs opaque. Only the native glass background and its legibility backing change.
+private struct NativeGlassSurface: ViewModifier {
+    let shape: AnyShape
+    var tint: Color? = nil
+    var interactive = false
+    @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.accessibilityReduceTransparency) private var reduced
+    @ViewBuilder func body(content: Content) -> some View {
+        if reduced {
+            content.background { shape.fill(Color.slateSurface).allowsHitTesting(false) }
+        } else {
+            // Regular glass diffuses background text and high-contrast slate stripes.
+            // Clear glass made overlapping history surfaces read like transparent lenses.
+            content.glassEffect(.regular.tint(tint).interactive(interactive), in: shape)
+                .background {
+                    shape.fill(Color.slateSurface.opacity(contrast == .increased ? 0.24 : 0.10))
+                        .allowsHitTesting(false)
+                }
         }
     }
 }

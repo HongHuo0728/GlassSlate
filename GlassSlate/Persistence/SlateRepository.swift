@@ -9,6 +9,10 @@ private struct StoredState: Sendable {
 }
 
 @ModelActor private actor SlatePersistence {
+    #if DEBUG
+    private var failNextSave = false
+    func failNextSaveForTesting() { failNextSave = true }
+    #endif
     private func workingDraft() throws -> SlateDraft {
         if let current = try modelContext.fetch(FetchDescriptor<SlateDraft>()).first { return current }
         let draft = SlateDraft(payload: try JSONEncoder().encode(SlateValues()))
@@ -20,18 +24,33 @@ private struct StoredState: Sendable {
         let draft = try workingDraft()
         let value = try JSONDecoder().decode(SlateValues.self, from: draft.payload)
         let stored = try modelContext.fetch(FetchDescriptor<SlateRecord>(sortBy: [SortDescriptor(\.createdAt, order: .reverse)]))
-        let records = try stored.map {
+        var records = try stored.map {
             HistorySnapshot(id: $0.id, createdAt: $0.createdAt,
                             values: try JSONDecoder().decode(SlateValues.self, from: $0.payload), soundName: $0.soundName,
                             displayName: $0.displayName, projectID: $0.projectID)
         }
         let projects = try modelContext.fetch(FetchDescriptor<SlateProject>(sortBy: [SortDescriptor(\.createdAt)]))
             .map { ProjectFolder(id: $0.id, name: $0.name, createdAt: $0.createdAt, isExpanded: $0.isExpanded) }
+        let validIDs = Set(projects.map(\.id))
+        for index in records.indices {
+            if let id = records[index].projectID, !validIDs.contains(id) {
+                records[index].projectID = nil
+                stored[index].projectID = nil
+            }
+        }
         try save()
         return StoredState(draft: value, records: records, projects: projects)
     }
     private func save() throws {
-        do { try modelContext.save() } catch { modelContext.rollback(); throw error }
+        do {
+            #if DEBUG
+            if failNextSave {
+                failNextSave = false
+                throw CocoaError(.fileWriteOutOfSpace)
+            }
+            #endif
+            try modelContext.save()
+        } catch { modelContext.rollback(); throw error }
     }
     func saveDraft(_ value: SlateValues) throws {
         let payload = try JSONEncoder().encode(value)
@@ -54,10 +73,13 @@ private struct StoredState: Sendable {
         guard let record = try record(id: id) else { return }
         modelContext.delete(record); try save()
     }
-    func undoDelete(_ snapshot: HistorySnapshot) throws {
-        guard try record(id: snapshot.id) == nil else { return }
-        modelContext.insert(SlateRecord(snapshot: snapshot, payload: try JSONEncoder().encode(snapshot.values)))
+    func undoDelete(_ snapshot: HistorySnapshot) throws -> HistorySnapshot {
+        if let existing = try record(id: snapshot.id) { return try snapshotFor(existing) }
+        var restored = snapshot
+        if let id = restored.projectID, try project(id: id) == nil { restored.projectID = nil }
+        modelContext.insert(SlateRecord(snapshot: restored, payload: try JSONEncoder().encode(restored.values)))
         try save()
+        return restored
     }
     func rename(id: UUID, name: String?) throws {
         guard let record = try record(id: id) else { return }
@@ -80,6 +102,50 @@ private struct StoredState: Sendable {
     func expand(id: UUID, expanded: Bool) throws {
         guard let project = try modelContext.fetch(FetchDescriptor<SlateProject>(predicate: #Predicate { $0.id == id })).first else { return }
         project.isExpanded = expanded; try save()
+    }
+    private func project(id: UUID) throws -> SlateProject? {
+        try modelContext.fetch(FetchDescriptor<SlateProject>(predicate: #Predicate { $0.id == id })).first
+    }
+    private func snapshotFor(_ record: SlateRecord) throws -> HistorySnapshot {
+        HistorySnapshot(id: record.id, createdAt: record.createdAt,
+                        values: try JSONDecoder().decode(SlateValues.self, from: record.payload),
+                        soundName: record.soundName, displayName: record.displayName, projectID: record.projectID)
+    }
+    func deleteProject(id: UUID, mode: ProjectDeletionMode) throws -> ProjectDeletionSnapshot {
+        guard let folder = try project(id: id) else { throw SlateStorageError.missingProject }
+        let members = try modelContext.fetch(FetchDescriptor<SlateRecord>(predicate: #Predicate { $0.projectID == id }))
+        let snapshot = ProjectDeletionSnapshot(
+            project: ProjectFolder(id: folder.id, name: folder.name, createdAt: folder.createdAt, isExpanded: folder.isExpanded),
+            records: try members.map(snapshotFor), mode: mode)
+        for record in members {
+            switch mode {
+            case .keepSlates: record.projectID = nil
+            case .deleteSlates: modelContext.delete(record)
+            }
+        }
+        modelContext.delete(folder)
+        try save()
+        return snapshot
+    }
+    func undoProjectDelete(_ snapshot: ProjectDeletionSnapshot) throws -> [HistorySnapshot] {
+        guard try project(id: snapshot.project.id) == nil else { return [] }
+        do {
+            let folder = snapshot.project
+            modelContext.insert(SlateProject(id: folder.id, name: folder.name, createdAt: folder.createdAt, isExpanded: folder.isExpanded))
+            var restored: [HistorySnapshot] = []
+            for member in snapshot.records {
+                if let existing = try record(id: member.id) {
+                    // A user's subsequent move takes precedence over restoring old membership.
+                    if existing.projectID == nil { existing.projectID = folder.id }
+                    restored.append(try snapshotFor(existing))
+                } else if snapshot.mode == .deleteSlates {
+                    modelContext.insert(SlateRecord(snapshot: member, payload: try JSONEncoder().encode(member.values)))
+                    restored.append(member)
+                }
+            }
+            try save()
+            return restored
+        } catch { modelContext.rollback(); throw error }
     }
 }
 
@@ -126,6 +192,10 @@ enum SlateStorageError: LocalizedError {
         try await persistence.saveDraft(value)
         draft = value; committedDraft = value
     }
+    func saveField(_ edit: SlateFieldEdit) async throws {
+        // Merge only the field being edited into the latest draft, including remote claps.
+        try await saveDraft(edit.applying(to: draft))
+    }
 
     /// Reserve the current Take synchronously. Every tap gets a distinct snapshot, even while earlier taps save.
     /// Disk operations are serialized in tap order; no animation or fixed debounce gates this queue.
@@ -165,8 +235,8 @@ enum SlateStorageError: LocalizedError {
     func undoDelete(_ snapshot: HistorySnapshot) async throws {
         guard !records.contains(where: { $0.id == snapshot.id }) else { return }
         try beginWrite(); defer { manualWrite = false }
-        try await persistence.undoDelete(snapshot)
-        records.append(snapshot); records.sort { $0.createdAt > $1.createdAt }
+        let restored = try await persistence.undoDelete(snapshot)
+        records.append(restored); records.sort { $0.createdAt > $1.createdAt }
     }
     func rename(id: UUID, name: String) async throws {
         try beginWrite(); defer { manualWrite = false }
@@ -195,4 +265,28 @@ enum SlateStorageError: LocalizedError {
         if let index = records.firstIndex(where: { $0.id == id }) { records[index].projectID = projectID }
         if let index = projects.firstIndex(where: { $0.id == projectID }) { projects[index].isExpanded = true }
     }
+    @discardableResult func deleteProject(id: UUID, mode: ProjectDeletionMode) async throws -> ProjectDeletionSnapshot {
+        try beginWrite(); defer { manualWrite = false }
+        let snapshot = try await persistence.deleteProject(id: id, mode: mode)
+        projects.removeAll { $0.id == id }
+        if mode == .deleteSlates { records.removeAll { $0.projectID == id } }
+        else {
+            for index in records.indices where records[index].projectID == id { records[index].projectID = nil }
+        }
+        return snapshot
+    }
+    func undoProjectDelete(_ snapshot: ProjectDeletionSnapshot) async throws {
+        guard !projects.contains(where: { $0.id == snapshot.project.id }) else { return }
+        try beginWrite(); defer { manualWrite = false }
+        let restored = try await persistence.undoProjectDelete(snapshot)
+        projects.append(snapshot.project); projects.sort { $0.createdAt < $1.createdAt }
+        for record in restored {
+            if let index = records.firstIndex(where: { $0.id == record.id }) { records[index] = record }
+            else { records.append(record) }
+        }
+        records.sort { $0.createdAt > $1.createdAt }
+    }
+    #if DEBUG
+    func failNextSaveForTesting() async { await persistence.failNextSaveForTesting() }
+    #endif
 }

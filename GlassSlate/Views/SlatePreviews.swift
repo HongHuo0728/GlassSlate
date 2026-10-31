@@ -4,7 +4,7 @@ import SwiftUI
 private struct StagePreview: View {
     let style: SlateVisualStyle
     let landscape: Bool
-    @State private var closure: CGFloat = 0
+    @State private var clapTrigger = 0
     private var values: SlateValues {
         var value = SlateValues()
         value.production = "The Last Blue Hour"
@@ -15,10 +15,9 @@ private struct StagePreview: View {
     var body: some View {
         ZStack {
             SlateBackground()
-            SlateStageView(values: values, recordCount: 12, locked: false, busy: false, closure: closure,
+            SlateStageView(values: values, recordCount: 12, locked: false, busy: false, clapTrigger: clapTrigger,
                            history: {}, settings: {}, toggleLock: {}, newSlate: {}, edit: { _ in }, clap: {
-                withAnimation(.easeIn(duration: 0.08)) { closure = 1 }
-                Task { try? await Task.sleep(for: .milliseconds(120)); withAnimation(.spring(duration: 0.16)) { closure = 0 } }
+                clapTrigger &+= 1
             })
             .padding(.horizontal, landscape ? 47 : 0)
             .padding(.top, landscape ? 0 : 47).padding(.bottom, landscape ? 21 : 34)

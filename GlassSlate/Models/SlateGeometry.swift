@@ -1,5 +1,17 @@
 import Foundation
 
+enum HistoryLayout {
+    static let sidebarWidth: CGFloat = 300
+    static func usesSidebar(isPad: Bool, width: CGFloat) -> Bool { isPad && width >= 744 }
+}
+
+enum ClapMotion {
+    static let closing = 0.035
+    static let contact = 0.020
+    static let reopening = 0.085
+    static let duration = closing + contact + reopening
+}
+
 struct SlateStageGeometry {
     let width: CGFloat
     let height: CGFloat
@@ -33,13 +45,13 @@ enum DrawerGesturePolicy {
         return opening ? x <= 20 : x >= width - 20
     }
     static func shouldBeginOpening(velocityX: CGFloat, velocityY: CGFloat) -> Bool {
-        velocityX > 40 && abs(velocityX) > abs(velocityY) * 1.5
+        velocityX > 0 && abs(velocityX) > abs(velocityY) * 1.5
     }
     static func shouldOpen(translation: CGFloat, velocity: CGFloat, width: CGFloat) -> Bool {
         translation > min(85, width * 0.25) || velocity > 550
     }
     static func shouldBegin(velocityX: CGFloat, velocityY: CGFloat) -> Bool {
-        velocityX < -40 && abs(velocityX) > abs(velocityY) * 1.5
+        velocityX < 0 && abs(velocityX) > abs(velocityY) * 1.5
     }
     static func shouldClose(translation: CGFloat, velocity: CGFloat, width: CGFloat) -> Bool {
         translation < -min(85, width * 0.25) || velocity < -550
