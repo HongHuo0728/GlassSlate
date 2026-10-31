@@ -1,0 +1,1 @@
+PASS: previous two-entity SQLite store migrated to projects/metadata schema without erasing draft or history

@@ -1,0 +1,14 @@
+nvrm: b81 PERF_BOOST flags 0x12 INFINITE rc 0x0
+nvrm: b72 host-pointer import ON (probe NV_STATUS 0)
+nvrm: b80 LOCAL+mapped memory -> system RAM (b79 placement) (BAR1 8192 MB, VRAM 16384 MB, default)
+nvrm: upload queue async copy engine: found (engine type 0xb, 3D class 0xc797)
+nvrm: b81 SET_LG_SECTOR_PROMOTION 64B rc 0x56
+Rendered hosted Classic-Portrait-Light: 390x844
+Rendered hosted Classic-Landscape-Light: 844x390
+Rendered hosted Classic-Portrait-Dark: 390x844
+Rendered hosted Classic-Landscape-Dark: 844x390
+Rendered hosted Classic-Settings-Light: 390x1700
+Rendered hosted Classic-New-Project-Light: 300x172
+Rendered hosted Classic-History-Actions-Light: 300x296
+Rendered hosted Classic-New-Project-Dark: 300x172
+Rendered hosted Classic-History-Actions-Dark: 300x296

@@ -1,0 +1,64 @@
+Building for debugging...
+[0/7] Write sources
+[2/7] <workspace>/work/OpenSourceSwiftTests/x86_64-apple-macosx/debug/GlassSlateCorePackageTests.derived/runner.swift
+[3/7] Write sources
+[4/7] Write swift-version--58304C5D6DBC2206.txt
+[6/14] Compiling SlateCore StoredSlate.swift
+[7/14] Compiling SlateCore SlateValues.swift
+[8/14] Compiling SlateCore SlateRepository.swift
+[9/14] Compiling SlateCore SlateGeometry.swift
+[10/14] Emitting module SlateCore
+[11/14] Compiling SlateCore SettingsStore.swift
+[12/14] Compiling SlateCore ActivityPayloadText.swift
+[13/18] Compiling SlateCoreTests InteractionPolicyTests.swift
+[14/18] Compiling SlateCoreTests ProjectAndRapidClapTests.swift
+[15/18] Compiling SlateCoreTests SlateRepositoryTests.swift
+[16/18] Emitting module SlateCoreTests
+[17/20] Emitting module GlassSlateCorePackageTests
+[18/20] Compiling GlassSlateCorePackageTests runner.swift
+[18/20] Write Objects.LinkFileList
+[19/20] Linking GlassSlateCorePackageTests
+Build complete! (31.17s)
+Test Suite 'All tests' started at 2026-10-31 18:07:03.617.
+Test Suite 'All tests' passed at 2026-10-31 18:07:03.619.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.002) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: x86_64-apple-macos14.0
+◇ Suite InteractionPolicyTests started.
+◇ Suite ProjectAndRapidClapTests started.
+◇ Suite SlateRepositoryTests started.
+◇ Test invalidProjectDoesNotMoveOrRenameRecord() started.
+◇ Test deleteUndoRestoresNameAndFolder() started.
+◇ Test drawerRejectsVerticalScrollAndRightwardDeletionRecovery() started.
+◇ Test drawerNavigationOnlyStartsAtPhysicalScreenEdges() started.
+◇ Test glassPreferenceOnlyAppliesOnNextLaunch() started.
+◇ Test liveActivityPayloadLimitsUnicodeAndEscapedControlText() started.
+◇ Test landscapeAllocatesClapperAndAllThreeDataRows() started.
+◇ Test corruptDraftFailsWithoutResettingStore() started.
+◇ Test rapidTapsReserveUniqueTakesAndPersistEverySnapshot() started.
+◇ Test projectGroupingAndRenameSurviveReopeningWithoutChangingSlateFields() started.
+◇ Test takePolicyPreservesIdentifiers() started.
+◇ Test snapshotBeforeIncrementAndRestoreIsIndependent() started.
+◇ Test disabledIncrementAndEmptyValues() started.
+◇ Test diskPersistenceDeletionUndoAndSort() started.
+◇ Test closedDrawerAndShadowClearLandscapeSafeAreas() started.
+✔ Test takePolicyPreservesIdentifiers() passed after 0.001 seconds.
+✔ Test drawerNavigationOnlyStartsAtPhysicalScreenEdges() passed after 0.001 seconds.
+✔ Test drawerRejectsVerticalScrollAndRightwardDeletionRecovery() passed after 0.001 seconds.
+✔ Test liveActivityPayloadLimitsUnicodeAndEscapedControlText() passed after 0.001 seconds.
+✔ Test closedDrawerAndShadowClearLandscapeSafeAreas() passed after 0.001 seconds.
+✔ Test landscapeAllocatesClapperAndAllThreeDataRows() passed after 0.001 seconds.
+✔ Test glassPreferenceOnlyAppliesOnNextLaunch() passed after 0.049 seconds.
+✔ Suite InteractionPolicyTests passed after 0.049 seconds.
+✔ Test corruptDraftFailsWithoutResettingStore() passed after 0.312 seconds.
+✔ Test invalidProjectDoesNotMoveOrRenameRecord() passed after 0.341 seconds.
+✔ Test snapshotBeforeIncrementAndRestoreIsIndependent() passed after 0.343 seconds.
+✔ Test deleteUndoRestoresNameAndFolder() passed after 0.348 seconds.
+✔ Test disabledIncrementAndEmptyValues() passed after 0.355 seconds.
+✔ Test projectGroupingAndRenameSurviveReopeningWithoutChangingSlateFields() passed after 0.454 seconds.
+✔ Test diskPersistenceDeletionUndoAndSort() passed after 0.706 seconds.
+✔ Suite SlateRepositoryTests passed after 0.707 seconds.
+✔ Test rapidTapsReserveUniqueTakesAndPersistEverySnapshot() passed after 0.871 seconds.
+✔ Suite ProjectAndRapidClapTests passed after 0.872 seconds.
+✔ Test run with 15 tests in 3 suites passed after 0.873 seconds.

@@ -1,0 +1,26 @@
+# macOS and Xcode user state
+.DS_Store
+xcuserdata/
+*.xcuserstate
+
+# Local build output and Swift Package caches
+.build/
+.swiftpm/
+build/
+DerivedData/
+*.xcarchive/
+*.dSYM/
+*.dSYM.zip
+
+# Installable packages and signing material
+*.ipa
+*.p12
+*.p8
+*.cer
+*.mobileprovision
+*.provisionprofile
+
+# Local-only configuration
+.env
+.env.*
+!.env.example
