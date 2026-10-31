@@ -1,0 +1,198 @@
+import Foundation
+import Observation
+import SwiftData
+
+private struct StoredState: Sendable {
+    let draft: SlateValues
+    let records: [HistorySnapshot]
+    let projects: [ProjectFolder]
+}
+
+@ModelActor private actor SlatePersistence {
+    private func workingDraft() throws -> SlateDraft {
+        if let current = try modelContext.fetch(FetchDescriptor<SlateDraft>()).first { return current }
+        let draft = SlateDraft(payload: try JSONEncoder().encode(SlateValues()))
+        modelContext.insert(draft)
+        return draft
+    }
+    func load() throws -> StoredState {
+        modelContext.autosaveEnabled = false
+        let draft = try workingDraft()
+        let value = try JSONDecoder().decode(SlateValues.self, from: draft.payload)
+        let stored = try modelContext.fetch(FetchDescriptor<SlateRecord>(sortBy: [SortDescriptor(\.createdAt, order: .reverse)]))
+        let records = try stored.map {
+            HistorySnapshot(id: $0.id, createdAt: $0.createdAt,
+                            values: try JSONDecoder().decode(SlateValues.self, from: $0.payload), soundName: $0.soundName,
+                            displayName: $0.displayName, projectID: $0.projectID)
+        }
+        let projects = try modelContext.fetch(FetchDescriptor<SlateProject>(sortBy: [SortDescriptor(\.createdAt)]))
+            .map { ProjectFolder(id: $0.id, name: $0.name, createdAt: $0.createdAt, isExpanded: $0.isExpanded) }
+        try save()
+        return StoredState(draft: value, records: records, projects: projects)
+    }
+    private func save() throws {
+        do { try modelContext.save() } catch { modelContext.rollback(); throw error }
+    }
+    func saveDraft(_ value: SlateValues) throws {
+        let payload = try JSONEncoder().encode(value)
+        let draft = try workingDraft()
+        draft.payload = payload; draft.updatedAt = .now
+        try save()
+    }
+    func storeClap(_ snapshot: HistorySnapshot, next: SlateValues) throws {
+        let record = SlateRecord(snapshot: snapshot, payload: try JSONEncoder().encode(snapshot.values))
+        let payload = try JSONEncoder().encode(next)
+        let draft = try workingDraft()
+        modelContext.insert(record)
+        draft.payload = payload; draft.updatedAt = snapshot.createdAt
+        try save()
+    }
+    private func record(id: UUID) throws -> SlateRecord? {
+        try modelContext.fetch(FetchDescriptor<SlateRecord>(predicate: #Predicate { $0.id == id })).first
+    }
+    func delete(id: UUID) throws {
+        guard let record = try record(id: id) else { return }
+        modelContext.delete(record); try save()
+    }
+    func undoDelete(_ snapshot: HistorySnapshot) throws {
+        guard try record(id: snapshot.id) == nil else { return }
+        modelContext.insert(SlateRecord(snapshot: snapshot, payload: try JSONEncoder().encode(snapshot.values)))
+        try save()
+    }
+    func rename(id: UUID, name: String?) throws {
+        guard let record = try record(id: id) else { return }
+        record.displayName = name; try save()
+    }
+    func move(id: UUID, projectID: UUID?) throws {
+        if let projectID {
+            guard let project = try modelContext.fetch(FetchDescriptor<SlateProject>(predicate: #Predicate { $0.id == projectID })).first else {
+                throw SlateStorageError.missingProject
+            }
+            project.isExpanded = true
+        }
+        guard let record = try record(id: id) else { return }
+        record.projectID = projectID; try save()
+    }
+    func createProject(_ folder: ProjectFolder) throws {
+        modelContext.insert(SlateProject(id: folder.id, name: folder.name, createdAt: folder.createdAt, isExpanded: folder.isExpanded))
+        try save()
+    }
+    func expand(id: UUID, expanded: Bool) throws {
+        guard let project = try modelContext.fetch(FetchDescriptor<SlateProject>(predicate: #Predicate { $0.id == id })).first else { return }
+        project.isExpanded = expanded; try save()
+    }
+}
+
+enum SlateStorageError: LocalizedError {
+    case operationInProgress, missingProject, emptyName
+    var errorDescription: String? {
+        switch self {
+        case .operationInProgress: String(localized: "A save is still in progress. Please try again.")
+        case .missingProject: String(localized: "This project is no longer available.")
+        case .emptyName: String(localized: "Enter a project name.")
+        }
+    }
+}
+
+@MainActor @Observable final class SlateRepository {
+    private(set) var draft: SlateValues
+    private(set) var records: [HistorySnapshot]
+    private(set) var projects: [ProjectFolder]
+    private(set) var pendingClaps = 0
+    private var manualWrite = false
+    var isSaving: Bool { manualWrite || pendingClaps > 0 }
+    private let persistence: SlatePersistence
+    private var committedDraft: SlateValues
+    private var clapTail: Task<HistorySnapshot, Error>?
+    static func makeContainer(inMemory: Bool = false, url: URL? = nil) throws -> ModelContainer {
+        let schema = Schema([SlateDraft.self, SlateRecord.self, SlateProject.self])
+        let configuration: ModelConfiguration
+        if let url { configuration = ModelConfiguration(schema: schema, url: url, cloudKitDatabase: .none) }
+        else { configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory, cloudKitDatabase: .none) }
+        return try ModelContainer(for: schema, configurations: [configuration])
+    }
+    init(container: ModelContainer) async throws {
+        let worker = await Task.detached { SlatePersistence(modelContainer: container) }.value
+        let state = try await worker.load()
+        persistence = worker; draft = state.draft; committedDraft = state.draft
+        records = state.records; projects = state.projects
+    }
+    private func beginWrite() throws {
+        guard !isSaving else { throw SlateStorageError.operationInProgress }
+        manualWrite = true
+    }
+    func saveDraft(_ value: SlateValues) async throws {
+        try beginWrite(); defer { manualWrite = false }
+        try await persistence.saveDraft(value)
+        draft = value; committedDraft = value
+    }
+
+    /// Reserve the current Take synchronously. Every tap gets a distinct snapshot, even while earlier taps save.
+    /// Disk operations are serialized in tap order; no animation or fixed debounce gates this queue.
+    func startClap(autoIncrement: Bool, soundName: String, now: Date = .now) throws -> (HistorySnapshot, Task<HistorySnapshot, Error>) {
+        guard !manualWrite else { throw SlateStorageError.operationInProgress }
+        let frozen = draft
+        let snapshot = HistorySnapshot(id: UUID(), createdAt: now, values: frozen, soundName: soundName)
+        var next = frozen
+        if autoIncrement { next.take = SlateValues.nextTake(next.take) }
+        draft = next
+        pendingClaps += 1
+        let previous = clapTail
+        let writer = persistence
+        let operation = Task { @MainActor [self] () throws -> HistorySnapshot in
+            defer {
+                pendingClaps -= 1
+                if pendingClaps == 0 { clapTail = nil; draft = committedDraft }
+            }
+            if let previous { _ = try await previous.value }
+            try await writer.storeClap(snapshot, next: next)
+            committedDraft = next
+            records.append(snapshot); records.sort { $0.createdAt > $1.createdAt }
+            return snapshot
+        }
+        clapTail = operation
+        return (snapshot, operation)
+    }
+    @discardableResult func clap(autoIncrement: Bool, soundName: String, now: Date = .now) async throws -> HistorySnapshot {
+        let (_, operation) = try startClap(autoIncrement: autoIncrement, soundName: soundName, now: now)
+        return try await operation.value
+    }
+    func restore(_ record: HistorySnapshot) async throws { try await saveDraft(record.values) }
+    func delete(id: UUID) async throws {
+        try beginWrite(); defer { manualWrite = false }
+        try await persistence.delete(id: id); records.removeAll { $0.id == id }
+    }
+    func undoDelete(_ snapshot: HistorySnapshot) async throws {
+        guard !records.contains(where: { $0.id == snapshot.id }) else { return }
+        try beginWrite(); defer { manualWrite = false }
+        try await persistence.undoDelete(snapshot)
+        records.append(snapshot); records.sort { $0.createdAt > $1.createdAt }
+    }
+    func rename(id: UUID, name: String) async throws {
+        try beginWrite(); defer { manualWrite = false }
+        let clean = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let title = clean.isEmpty ? nil : clean
+        try await persistence.rename(id: id, name: title)
+        if let index = records.firstIndex(where: { $0.id == id }) { records[index].displayName = title }
+    }
+    @discardableResult func createProject(name: String) async throws -> ProjectFolder {
+        let clean = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !clean.isEmpty else { throw SlateStorageError.emptyName }
+        try beginWrite(); defer { manualWrite = false }
+        let folder = ProjectFolder(id: UUID(), name: clean, createdAt: .now, isExpanded: true)
+        try await persistence.createProject(folder)
+        projects.append(folder)
+        return folder
+    }
+    func setExpanded(id: UUID, expanded: Bool) async throws {
+        try beginWrite(); defer { manualWrite = false }
+        try await persistence.expand(id: id, expanded: expanded)
+        if let index = projects.firstIndex(where: { $0.id == id }) { projects[index].isExpanded = expanded }
+    }
+    func move(id: UUID, projectID: UUID?) async throws {
+        try beginWrite(); defer { manualWrite = false }
+        try await persistence.move(id: id, projectID: projectID)
+        if let index = records.firstIndex(where: { $0.id == id }) { records[index].projectID = projectID }
+        if let index = projects.firstIndex(where: { $0.id == projectID }) { projects[index].isExpanded = true }
+    }
+}
