@@ -1,85 +1,85 @@
 # GlassSlate
 
-**一块为 iPhone 设计的原生电子电影场记板。**
+English | [简体中文](README.zh-CN.md)
 
-GlassSlate 使用 Swift、SwiftUI 和 Apple 原生 Liquid Glass 构建，把拍摄数据、拍板动画、音效与历史记录放进同一个工作界面。支持横竖屏、项目归类，以及可切换的经典毛玻璃界面。
+**A native digital clapperboard for iPhone.**
 
-Native iOS clapperboard built with SwiftUI, Liquid Glass, SwiftData, and ActivityKit.
+Built with Swift, SwiftUI, and Apple's native Liquid Glass, GlassSlate brings production details, clapper animation, sound, and take history into one working slate. It supports portrait and landscape layouts, project folders, and an optional classic frosted interface.
 
-[功能](#功能) · [使用方法](#使用方法) · [构建与安装](#构建与安装) · [工程结构](#工程结构) · [MIT 许可证](LICENSE)
+[Features](#features) · [Getting started](#getting-started) · [Build and install](#build-and-install) · [Project structure](#project-structure) · [MIT License](LICENSE)
 
-| 项目 | 说明 |
+| Item | Details |
 | --- | --- |
-| 当前版本 | 1.0.0 · Build 1 |
-| 平台 | iPhone · iOS 26.0 及以上 |
-| 开发环境 | Xcode 26.5 · macOS Tahoe |
-| 语言与界面 | Swift 6 · SwiftUI |
-| 数据存储 | SwiftData · UserDefaults |
-| 本地化 | 简体中文、English |
-| 第三方依赖 | 无 |
-| 开源许可 | MIT |
+| Version | 1.0.0 · Build 1 |
+| Platform | iPhone · iOS 26.0 or later |
+| Development environment | Xcode 26.5 · macOS Tahoe |
+| Language and UI | Swift 6 · SwiftUI |
+| Local storage | SwiftData · UserDefaults |
+| Localization | English and Simplified Chinese |
+| Third-party dependencies | None |
+| License | MIT |
 
-## 功能
+## Features
 
-### 拍摄与拍板
+### Slate and clapper
 
-- 编辑八项拍摄数据：片名 / 制作名称、卷号、场次、镜头、条次、导演、摄影师和日期。
-- 轻触斜纹拍板，播放开合动画与音效，同时保存当前场记板快照。
-- 支持连续拍板；每次点击独立预留条次，并按顺序持久化记录。
-- 可选拍板后自动递增 Take，保留数字前导零：`009 → 010`；混合编号如 `02B` 保持原样。
-- 使用等宽数字减少数值切换时的位移；横屏采用独立布局。
-- 锁定字段，减少拍摄过程中的误编辑；前台锁定时可保持屏幕常亮。
+- Edit eight production fields: Production, Roll, Scene, Shot, Take, Director, Cameraman, and Date.
+- Tap the striped clapper to play the animation and clap sound while saving a snapshot of the current slate.
+- Clap repeatedly: each tap reserves its own take number, and records are persisted in order.
+- Optionally increment Take after each clap, preserving leading zeros: `009 → 010`. Mixed identifiers such as `02B` remain unchanged.
+- Monospaced digits reduce movement when values change; landscape uses a dedicated layout.
+- Lock fields to reduce accidental edits and keep the screen awake while the app is active.
 
-### 历史与项目
+### History and projects
 
-- 从屏幕左边缘向右滑展开历史抽屉，从屏幕右边缘向左滑收起抽屉。
-- 点击历史卡片恢复拍摄数据，长按进入重命名、移动和删除操作。
-- 新建项目文件夹，展开或收起项目，并通过拖放或菜单归类场记记录。
-- 显示名称独立于拍摄数据，重命名不会改写原始快照中的八项字段。
-- 局部左滑显示系统实心删除按钮，完整左滑直接删除。
-- 删除后提供五秒撤销入口，超时自动退场。
+- Swipe right from the left screen edge to open history, or left from the right screen edge to close it.
+- Tap a history card to restore its data; long-press for rename, move, and delete actions.
+- Create project folders, expand or collapse them, and organize slates using drag and drop or the move menu.
+- Display names are separate from production data: renaming a record does not rewrite its eight saved fields.
+- A partial left swipe reveals the system's solid delete button; a full swipe deletes immediately.
+- A five-second undo action appears after deletion, then dismisses automatically.
 
-### 外观与本地化
+### Appearance and localization
 
-- 默认使用原生 Liquid Glass，背景为浅蓝到白色渐变。
-- 支持跟随系统、浅色和深色主题。
-- 可关闭 Liquid Glass，切换到独立设计的经典毛玻璃与哑光界面。
-- 更改玻璃模式后，需要在多任务界面关闭 App，再重新打开。
-- 简体中文与英语默认跟随系统；单独切换 App 语言通过 iOS 原生 App 设置完成。
-- 包含原创分层 SVG、Icon Composer `.icon` 资源及图标预览。
+- Native Liquid Glass is enabled by default, with a light-blue-to-white background gradient.
+- Choose System, Light, or Dark appearance.
+- Turn off Liquid Glass to use a separately designed classic frosted and matte interface.
+- After changing the glass preference, close the app from the app switcher and reopen it.
+- English and Simplified Chinese follow the system language by default. Choose a separate app language in the native iOS app settings.
+- Includes original layered SVG artwork, an Icon Composer `.icon` asset, and icon previews.
 
-### 音效与实时活动
+### Sound and Live Activities
 
-- 内置经典拍板音效，支持试听、导入自定义音效和一键恢复经典音效。
-- 推荐导入 WAV 或 M4A；音频最长 30 秒、最大 50 MB，并复制到 App 本地存储。
-- 使用原生系统输出音量控件，不自动修改系统音量。
-- 实时活动默认开启，可在支持的锁屏与展开的灵动岛中使用圆形拍板按钮。
-- 使用公开的 ActivityKit、WidgetKit 和 App Intents；可用性与持续时间由 iOS 管理。
+- A bundled classic clap sound, sound preview, custom audio import, and one-tap restoration of the classic sound.
+- WAV and M4A are recommended. Imported audio can be up to 30 seconds and 50 MB and is copied into local app storage.
+- A native system output-volume control; GlassSlate does not change system volume automatically.
+- Live Activities are enabled by default, with a circular clap button on supported Lock Screen and expanded Dynamic Island presentations.
+- Uses public ActivityKit, WidgetKit, and App Intents APIs. Availability and duration are managed by iOS.
 
-## 界面预览
+## Layout previews
 
-下面展示的是**经典模式的布局预览**，由实际共享的 SwiftUI 视图通过 macOS 离屏渲染生成，**不是 iPhone 真机截图**。原生玻璃合成效果以设备实际显示为准。
+These are **classic-mode layout previews** rendered offscreen on macOS from the shared SwiftUI views, **not iPhone device screenshots**. Native glass compositing should be assessed on an actual device.
 
 <p>
-  <img src="Previews/Classic-Portrait-Light.png" width="260" alt="GlassSlate 经典模式浅色竖屏布局">
-  <img src="Previews/Classic-Portrait-Dark.png" width="260" alt="GlassSlate 经典模式深色竖屏布局">
+  <img src="Previews/Classic-Portrait-Light.png" width="260" alt="GlassSlate classic portrait layout in light mode">
+  <img src="Previews/Classic-Portrait-Dark.png" width="260" alt="GlassSlate classic portrait layout in dark mode">
 </p>
 
-<img src="Previews/Classic-Landscape-Light.png" width="800" alt="GlassSlate 经典模式横屏布局">
+<img src="Previews/Classic-Landscape-Light.png" width="800" alt="GlassSlate classic landscape layout">
 
-## 使用方法
+## Getting started
 
-1. 打开 GlassSlate，轻触字段填写拍摄数据；日期使用原生日期选择器。
-2. 轻触顶部斜纹拍板，记录当前拍摄。若开启自动递增，保存本条快照后工作场记板会切换到下一条次。
-3. 打开历史抽屉，点击卡片恢复数据；长按卡片可重命名、归类或删除。经典模式长按松手后显示操作气泡，持续按住并移动可开始拖放。
-4. 在抽屉中新建项目，把记录拖入项目文件夹；也可以通过移动菜单完成归类。
-5. 在设置中调整主题、玻璃模式、自动递增、触觉反馈、音效和实时活动。
+1. Open GlassSlate and tap a field to enter production details. Date uses the native date picker.
+2. Tap the striped clapper to mark a take. If automatic increment is enabled, the current snapshot is saved before the working slate advances to the next take.
+3. Open history to restore a slate. Long-press a card to rename, move, or delete it. In classic mode, release after the long press to show the action popover; holding and moving can begin a drag.
+4. Create a project in the drawer and drag slates into its folder, or use the move menu.
+5. Open Settings to adjust appearance, glass mode, automatic increment, haptics, sound, and Live Activities.
 
-## 构建与安装
+## Build and install
 
-仓库包含完整的 Xcode 工程、实时活动扩展、测试、脚本与资源。克隆后可直接打开工程，无需先运行生成脚本。
+This repository includes the Xcode project, Live Activity extension, tests, scripts, and resources. After cloning, you can open the project directly without running a generator first.
 
-### 使用 Xcode
+### With Xcode
 
 ```sh
 git clone https://github.com/HongHuo0728/GlassSlate.git
@@ -87,11 +87,11 @@ cd GlassSlate
 open GlassSlate.xcodeproj
 ```
 
-选择 `GlassSlate` Scheme，使用 Xcode 26.5 构建。安装到 iPhone 时，为主 App 与 `GlassSlateLiveActivity` 扩展配置自己的签名 Team；必要时同时修改主 App 和扩展的 Bundle Identifier，并保留父子关系。
+Select the `GlassSlate` scheme and build with Xcode 26.5. To install on an iPhone, configure your own signing team for both the main app and the `GlassSlateLiveActivity` extension. If necessary, change both bundle identifiers while preserving their parent–child relationship.
 
-### 无签名构建
+### Build without signing
 
-以下命令针对通用 iOS 设备构建，不需要启动模拟器：
+Build for a generic iOS device without launching a simulator:
 
 ```sh
 xcodebuild \
@@ -104,9 +104,9 @@ xcodebuild \
   build
 ```
 
-### 自行生成 IPA
+### Package your own IPA
 
-构建完成后，可使用仓库内的 Python 3 脚本生成并检查未签名 IPA：
+After building, use the included Python 3 script to package and validate an unsigned IPA:
 
 ```sh
 python3 Scripts/package_ipa.py \
@@ -114,69 +114,70 @@ python3 Scripts/package_ipa.py \
   --output build/GlassSlate-1.0.0-unsigned.ipa
 ```
 
-生成结果位于本地 `build/`，不会进入 Git。未签名 IPA 需要先签名才能安装；签名工具必须同时处理主 App 和 `PlugIns/GlassSlateLiveActivity.appex`，保留内嵌扩展。
+Output is written to the local, Git-ignored `build/` directory. An unsigned IPA must be signed before installation. Your signing tool must sign both the main app and `PlugIns/GlassSlateLiveActivity.appex` and retain the embedded extension.
 
-**本仓库不提交构建好的 IPA。**
+**Built IPA files are not committed to this repository.**
 
-## 测试与检查
+## Tests and checks
 
-核心数据与交互策略测试可直接在 macOS Tahoe 上运行，无需 iOS 模拟器：
+Run core data and interaction-policy tests directly on macOS Tahoe without an iOS simulator:
 
 ```sh
 swift test --scratch-path build/SwiftTests
 ```
 
-当前包含 15 项核心测试，覆盖草稿与历史持久化、删除撤销、项目归类与重命名、快速连续拍板的条次顺序、抽屉边缘策略及横屏隐藏边界、设置持久化，以及实时活动载荷长度约束。
+The current suite contains 15 core tests covering draft and history persistence, deletion and undo, project organization and renaming, take ordering during rapid claps, drawer edge gestures and landscape hiding boundaries, persistent settings, and Live Activity payload limits.
 
-检查本地化、音效和图标资源：
+Audit localization, audio, and icon resources:
 
 ```sh
 python3 Scripts/audit_resources.py build/DerivedData
 ```
 
-编译与数据测试不替代设备端验收。实际触控、声音输出、玻璃效果与锁屏交互仍应在签名安装后验证。检查范围与记录见 [QA 文档](docs/QA.md) 和 [构建日志](Logs/)。日志中的本机绝对路径已去除。
+Compilation and data tests do not replace device validation. Touch interaction, audio output, glass rendering, and Lock Screen behavior should also be checked after signing and installation. See the [QA notes](docs/QA.md) and [build logs](Logs/) for scope and evidence. Local absolute paths have been removed from the published logs. The detailed QA notes are currently in Simplified Chinese.
 
-## 工程结构
+## Project structure
 
 ```text
 GlassSlate/
-├── GlassSlate.xcodeproj/       # App、扩展和 iOS 测试 Target
+├── GlassSlate.xcodeproj/       # App, extension, and iOS test targets
 ├── GlassSlate/
-│   ├── App/                   # App 入口
-│   ├── Models/                # 拍摄数据、设置与布局策略
-│   ├── Persistence/           # SwiftData 与串行持久化
-│   ├── Services/              # 音效、触觉与实时活动服务
-│   ├── Views/                 # 场记板、抽屉、编辑与设置
-│   ├── Resources/             # 双语文案、音效与隐私清单
+│   ├── App/                   # App entry point
+│   ├── Models/                # Slate data, settings, and layout policies
+│   ├── Persistence/           # SwiftData and serial persistence
+│   ├── Services/              # Audio, haptics, and Live Activity services
+│   ├── Views/                 # Slate, drawer, editors, and settings
+│   ├── Resources/             # Localization, audio, and privacy manifest
 │   ├── Assets.xcassets/
-│   └── GlassSlate.icon/       # 原生分层图标
-├── Shared/                    # App 与扩展共享的活动模型和 Intent
-├── GlassSlateLiveActivity/    # 锁屏与灵动岛界面
-├── GlassSlateTests/           # 核心回归测试
-├── Package.swift             # macOS 核心测试入口
-├── Scripts/                   # 工程生成、资源生成、检查与打包
-├── Design/                    # 原创图标分层源文件和预览
-├── Previews/                  # 布局检查图与说明
-├── Logs/                      # 去除本机路径的验证记录
+│   └── GlassSlate.icon/       # Native layered app icon
+├── Shared/                    # Activity models and intent shared by both targets
+├── GlassSlateLiveActivity/    # Lock Screen and Dynamic Island views
+├── GlassSlateTests/           # Core regression tests
+├── Package.swift             # macOS core-test entry point
+├── Scripts/                   # Project generation, assets, audits, and packaging
+├── Design/                    # Original icon layers and previews
+├── Previews/                  # Layout checks and notes
+├── Logs/                      # Validation records with local paths removed
 ├── docs/QA.md
+├── README.zh-CN.md            # Simplified Chinese documentation
 └── LICENSE
 ```
 
-增加、移除或调整源码文件后，可运行 `python3 Scripts/generate_project.py` 更新工程引用。该脚本会重新生成工程配置；如有自己的签名或 Target 调整，请先保留相应修改。
+After adding, removing, or reorganizing source files, run `python3 Scripts/generate_project.py` to update project references. The script regenerates project configuration, so preserve any custom signing or target settings first.
 
-## 数据与平台说明
+## Data and platform notes
 
-- 拍摄数据、历史、项目和设置保存在本机；无需登录，当前没有云同步与第三方统计 SDK。
-- “经典模式”是外观选项，最低系统要求仍为 iOS 26.0，不代表兼容 iOS 18。
-- 系统键盘、文件选择器与系统设置由当前 iOS 提供。
-- 实时活动由系统管理，不保证永久显示；灵动岛需要设备与系统支持。
-- 音频响应受设备性能与蓝牙等输出路由影响，不承诺物理零延迟。
+- Production data, history, projects, and settings are stored locally. No account is required; there is currently no cloud sync or third-party analytics SDK.
+- Classic mode is an appearance option. The minimum OS requirement remains iOS 26.0; it does not add iOS 18 compatibility.
+- The keyboard, file picker, and system settings are provided by the installed version of iOS.
+- Live Activities are managed by the system and are not guaranteed to remain visible indefinitely. Dynamic Island requires device and OS support.
+- Audio response depends on device performance and output routes such as Bluetooth; physical zero latency is not guaranteed.
 
-## 反馈与贡献
+## Feedback and contributions
 
-欢迎通过 [Issues](https://github.com/HongHuo0728/GlassSlate/issues) 提交问题和建议，或发起 Pull Request。
+Bug reports, suggestions, and pull requests are welcome. Please use [Issues](https://github.com/HongHuo0728/GlassSlate/issues) to report a problem.
 
-报告问题时，请尽量附上 App 版本、iPhone 型号、iOS 版本、玻璃模式是否开启、复现步骤和截图；音效问题可同时说明输出路由。
+Include the app version, iPhone model, iOS version, whether Liquid Glass is enabled, reproduction steps, and screenshots where possible. For audio issues, also describe the output route.
 
 ## License
 
